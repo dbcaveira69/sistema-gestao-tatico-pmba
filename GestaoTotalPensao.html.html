@@ -1,0 +1,251 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Pensão & Extras - Tactical Ops</title>
+    
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Rajdhani:wght@600;700&family=Roboto:wght@400;500&display=swap" rel="stylesheet">
+
+    <style>
+        :root {
+            --bg-body: #0b0c0d; --bg-panel: #16181a;
+            --primary: #556B2F; --tech-accent: #8bc34a;
+            --extra-accent: #3498db; --text-main: #e0e0e0; 
+            --border: #2d3238; --alert: #ff5252;
+        }
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: 'Roboto', sans-serif; background: var(--bg-body); color: var(--text-main); padding: 20px; }
+        
+        /* HUD HEADER */
+        .hud-header { border-left: 5px solid var(--primary); padding: 10px 15px; margin-bottom: 25px; display: flex; justify-content: space-between; align-items: center; background: linear-gradient(90deg, #1a1d21, transparent); }
+        .hud-title { font-family: 'Rajdhani'; font-size: 22px; letter-spacing: 2px; text-transform: uppercase; color: var(--tech-accent); }
+        
+        /* TABS INTERNAS */
+        .internal-tabs { display: flex; gap: 5px; margin-bottom: 20px; border-bottom: 1px solid var(--border); }
+        .tab-item { padding: 12px 25px; cursor: pointer; font-family: 'Rajdhani'; font-weight: bold; text-transform: uppercase; border: 1px solid transparent; transition: 0.3s; color: #666; }
+        .tab-item.active { color: var(--tech-accent); border: 1px solid var(--border); border-bottom: 2px solid var(--tech-accent); background: var(--bg-panel); }
+        .tab-item.extra.active { color: var(--extra-accent); border-bottom-color: var(--extra-accent); }
+
+        /* DASHBOARD */
+        .dash-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 15px; margin-bottom: 20px; }
+        .stat-card { background: var(--bg-panel); border: 1px solid var(--border); padding: 20px; border-radius: 4px; }
+        .stat-label { font-size: 10px; text-transform: uppercase; color: #888; font-weight: bold; margin-bottom: 10px; display: block; }
+        .stat-value { font-family: 'Rajdhani'; font-size: 28px; color: #fff; }
+
+        /* FORMULÁRIO */
+        .ops-panel { background: var(--bg-panel); border: 1px solid var(--primary); padding: 20px; border-radius: 4px; margin-bottom: 25px; display: none; }
+        .ops-panel.active { display: block; }
+        .ops-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 15px; }
+        .input-group label { display: block; font-size: 11px; color: var(--tech-accent); margin-bottom: 5px; text-transform: uppercase; }
+        .input-field { width: 100%; background: #0b0c0d; border: 1px solid #333; color: #fff; padding: 12px; font-size: 14px; }
+
+        .paste-area { grid-column: 1 / -1; border: 2px dashed #333; padding: 15px; text-align: center; color: #666; cursor: pointer; transition: 0.3s; margin-top: 10px; }
+        .paste-area:hover { border-color: var(--tech-accent); background: rgba(139, 195, 74, 0.05); }
+
+        /* TABELAS */
+        .db-table { width: 100%; border-collapse: collapse; margin-top: 20px; display: none; }
+        .db-table.active { table-layout: fixed; display: table; }
+        .db-table th { background: #1c1f22; padding: 12px; text-align: left; font-size: 11px; text-transform: uppercase; color: var(--tech-accent); }
+        .db-table td { padding: 12px; border-bottom: 1px solid #222; font-size: 14px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+        
+        .badge-img { background: var(--primary); color: #fff; padding: 5px 10px; border-radius: 2px; font-size: 10px; cursor: pointer; border: none; }
+        .modal { position: fixed; inset: 0; background: rgba(0,0,0,0.95); display: none; justify-content: center; align-items: center; z-index: 9999; }
+        .modal img { max-width: 90%; max-height: 90%; border: 2px solid var(--tech-accent); }
+
+        .btn-main { background: var(--primary); color: #fff; border: none; padding: 12px 25px; font-family: 'Rajdhani'; font-weight: bold; cursor: pointer; text-transform: uppercase; }
+    </style>
+</head>
+<body>
+
+<div id="imgModal" class="modal" onclick="this.style.display='none'"><img id="fullImg"></div>
+
+<div class="hud-header">
+    <div class="hud-title"><i class="fas fa-file-invoice-dollar"></i> Sistema Unificado de Pensão</div>
+    <div id="statusVencimento" style="font-size: 12px; font-weight: bold;"></div>
+</div>
+
+<div class="dash-grid">
+    <div class="stat-card"><span class="stat-label">Total Pensão (Anual)</span><div class="stat-value" id="stat-total-pensao">R$ 0,00</div></div>
+    <div class="stat-card"><span class="stat-label">Total Gastos Extras</span><div class="stat-value" id="stat-total-extras" style="color:var(--extra-accent)">R$ 0,00</div></div>
+    <div class="stat-card"><span class="stat-label">Consolidado Geral</span><div class="stat-value" id="stat-geral">R$ 0,00</div></div>
+</div>
+
+<div class="internal-tabs">
+    <div class="tab-item active" onclick="switchTab('pensao', this)"><i class="fas fa-hand-holding-usd"></i> Pensão Fixa</div>
+    <div class="tab-item extra" onclick="switchTab('extras', this)"><i class="fas fa-shopping-basket"></i> Gastos Extras</div>
+</div>
+
+<div id="panel-pensao" class="ops-panel active">
+    <div class="ops-grid">
+        <div class="input-group"><label>Data</label><input type="date" id="p-data" class="input-field"></div>
+        <div class="input-group"><label>Mês Ref.</label><select id="p-mes" class="input-field"><option>Janeiro</option><option>Fevereiro</option><option>Março</option><option>Abril</option><option>Maio</option><option>Junho</option><option>Julho</option><option>Agosto</option><option>Setembro</option><option>Outubro</option><option>Novembro</option><option>Dezembro</option></select></div>
+        <div class="input-group"><label>Valor (R$)</label><input type="number" id="p-valor" class="input-field" placeholder="0,00"></div>
+        <div class="input-group" style="display:flex; align-items:flex-end;"><button class="btn-main" onclick="registrar('pensao')">Lançar Pensão</button></div>
+    </div>
+</div>
+
+<div id="panel-extras" class="ops-panel" style="border-color: var(--extra-accent);">
+    <div class="ops-grid">
+        <div class="input-group"><label style="color:var(--extra-accent)">Data</label><input type="date" id="e-data" class="input-field"></div>
+        <div class="input-group" style="grid-column: span 2;"><label style="color:var(--extra-accent)">Descrição do Gasto</label><input type="text" id="e-desc" class="input-field" placeholder="Ex: Farmácia, Vestuário..."></div>
+        <div class="input-group"><label style="color:var(--extra-accent)">Valor (R$)</label><input type="number" id="e-valor" class="input-field" placeholder="0,00"></div>
+        <div class="input-group" style="display:flex; align-items:flex-end; grid-column: span 4;"><button class="btn-main" style="background:var(--extra-accent); width:100%" onclick="registrar('extras')">Registrar Gasto Extra</button></div>
+    </div>
+</div>
+
+<div class="ops-panel active" style="margin-top:-20px; padding-top:0; border-top:none;">
+    <div class="paste-area" id="pasteBox">
+        <i class="fas fa-camera"></i> <span id="pasteLabel">CLIQUE OU COLE O COMPROVANTE (CTRL+V)</span>
+        <img id="prevImg" style="display:none; height:50px; margin: 10px auto; border: 1px solid var(--tech-accent);">
+        <input type="file" id="fileInput" style="display:none" accept="image/*">
+    </div>
+</div>
+
+<div class="analytics-box" style="background:var(--bg-panel); padding:20px;">
+    <select id="filtro-ano" class="input-field" style="width:150px; margin-bottom:15px;" onchange="renderizarTabelas()"><option value="todos">TODOS OS ANOS</option></select>
+    
+    <table id="table-pensao" class="db-table active">
+        <thead><tr><th>Referência</th><th>Data Pgto</th><th>Valor</th><th>Doc</th><th>Ação</th></tr></thead>
+        <tbody id="corpo-pensao"></tbody>
+    </table>
+
+    <table id="table-extras" class="db-table">
+        <thead><tr><th>Data</th><th>Descrição</th><th>Valor</th><th>Doc</th><th>Ação</th></tr></thead>
+        <tbody id="corpo-extras"></tbody>
+    </table>
+</div>
+
+<script>
+    const API_URL = "https://script.google.com/macros/s/AKfycbxiVk0YLmZJp9ffSm6lvQw4xhYA-cwdWrHLDao63c2WyVCL0naRqC8v-LIfYN0JlGGo/exec"; 
+    let dbPensao = [], dbExtras = [], base64Temp = null;
+
+    window.onload = () => {
+        document.querySelectorAll('input[type="date"]').forEach(i => i.valueAsDate = new Date());
+        setupPaste();
+        carregarDados();
+    };
+
+    function setupPaste() {
+        document.getElementById('pasteBox').onclick = () => document.getElementById('fileInput').click();
+        document.getElementById('fileInput').onchange = e => lerArquivo(e.target.files[0]);
+        window.addEventListener('paste', e => {
+            const item = Array.from(e.clipboardData.items).find(x => x.type.indexOf('image') !== -1);
+            if (item) lerArquivo(item.getAsFile());
+        });
+    }
+
+    function lerArquivo(file) {
+        if (!file) return;
+        const reader = new FileReader();
+        reader.onload = e => {
+            base64Temp = e.target.result;
+            document.getElementById('prevImg').src = base64Temp;
+            document.getElementById('prevImg').style.display = 'block';
+            document.getElementById('pasteLabel').innerText = "COMPROVANTE CARREGADO!";
+        };
+        reader.readAsDataURL(file);
+    }
+
+    function switchTab(type, btn) {
+        document.querySelectorAll('.tab-item').forEach(t => t.classList.remove('active'));
+        document.querySelectorAll('.ops-panel, .db-table').forEach(p => p.classList.remove('active'));
+        btn.classList.add('active');
+        document.getElementById('panel-' + type).classList.add('active');
+        document.getElementById('table-' + type).classList.add('active');
+    }
+
+    async function carregarDados() {
+        try {
+            const r = await fetch(API_URL);
+            const data = await r.json();
+            dbPensao = data.pensao || [];
+            dbExtras = data.gastos_extras || [];
+            atualizarFiltroAnos();
+            renderizarTabelas();
+            verificarVencimento();
+        } catch(e) { console.error("Erro link nuvem"); }
+    }
+
+    function atualizarFiltroAnos() {
+        const select = document.getElementById('filtro-ano');
+        const anos = [...new Set([...dbPensao, ...dbExtras].map(i => i.data.split('-')[0]))];
+        select.innerHTML = '<option value="todos">TODOS OS ANOS</option>';
+        anos.sort((a,b) => b-a).forEach(ano => {
+            select.innerHTML += `<option value="${ano}">${ano}</option>`;
+        });
+    }
+
+    function verificarVencimento() {
+        const hoje = new Date();
+        const jaPago = dbPensao.some(i => i.mes === document.getElementById('p-mes').options[hoje.getMonth()].text && i.data.startsWith(hoje.getFullYear()));
+        const status = document.getElementById('statusVencimento');
+        if(jaPago) { status.innerText = "PENSÃO DO MÊS: PAGA"; status.style.color = "var(--tech-accent)"; }
+        else if(hoje.getDate() > 10) { status.innerText = "PENSÃO: ATRASADA (VENCEU DIA 10)"; status.style.color = "var(--alert)"; }
+        else { status.innerText = "PENSÃO: PENDENTE (VENCE DIA 10)"; status.style.color = "#f1c40f"; }
+    }
+
+    async function registrar(type) {
+        const valor = parseFloat(document.getElementById(type === 'pensao' ? 'p-valor' : 'e-valor').value);
+        if(!valor) return alert("Defina o valor.");
+
+        const registro = {
+            id: Date.now(),
+            data: document.getElementById(type === 'pensao' ? 'p-data' : 'e-data').value,
+            valor: valor,
+            img: base64Temp
+        };
+
+        if(type === 'pensao') {
+            registro.mes = document.getElementById('p-mes').value;
+            dbPensao.push(registro);
+        } else {
+            registro.desc = document.getElementById('e-desc').value;
+            dbExtras.push(registro);
+        }
+
+        await sincronizar();
+        location.reload(); 
+    }
+
+    function renderizarTabelas() {
+        const filtro = document.getElementById('filtro-ano').value;
+        const render = (db, corpoId, isPensao) => {
+            const corpo = document.getElementById(corpoId);
+            corpo.innerHTML = "";
+            let total = 0;
+            db.filter(i => filtro === 'todos' || i.data.startsWith(filtro)).forEach(i => {
+                total += i.valor;
+                corpo.innerHTML += `<tr><td>${isPensao ? i.mes : i.data.split('-').reverse().join('/')}</td><td>${isPensao ? i.data.split('-').reverse().join('/') : i.desc}</td><td style="color:var(--tech-accent); font-weight:bold">${i.valor.toLocaleString('pt-BR',{style:'currency',currency:'BRL'})}</td><td>${i.img ? `<button class="badge-img" onclick="verImg('${i.img}')">VER</button>` : '-'}</td><td><button onclick="excluir(${i.id}, '${isPensao?'pensao':'extras'}')" style="background:none; border:none; color:var(--alert); cursor:pointer;"><i class="fas fa-trash"></i></button></td></tr>`;
+            });
+            return total;
+        };
+
+        const tP = render(dbPensao, 'corpo-pensao', true);
+        const tE = render(dbExtras, 'corpo-extras', false);
+        document.getElementById('stat-total-pensao').innerText = tP.toLocaleString('pt-BR',{style:'currency',currency:'BRL'});
+        document.getElementById('stat-total-extras').innerText = tE.toLocaleString('pt-BR',{style:'currency',currency:'BRL'});
+        document.getElementById('stat-geral').innerText = (tP + tE).toLocaleString('pt-BR',{style:'currency',currency:'BRL'});
+    }
+
+    function verImg(src) { document.getElementById('fullImg').src = src; document.getElementById('imgModal').style.display = 'flex'; }
+
+    async function sincronizar() {
+        const res = await fetch(API_URL);
+        let dados = await res.json();
+        dados.pensao = dbPensao;
+        dados.gastos_extras = dbExtras;
+        await fetch(API_URL, { method: 'POST', mode: 'no-cors', body: JSON.stringify(dados) });
+    }
+
+    function excluir(id, type) {
+        if(confirm("Excluir?")) {
+            if(type === 'pensao') dbPensao = dbPensao.filter(x => x.id !== id);
+            else dbExtras = dbExtras.filter(x => x.id !== id);
+            sincronizar().then(() => location.reload());
+        }
+    }
+</script>
+</body>
+</html>
