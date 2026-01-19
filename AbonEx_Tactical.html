@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>GestorPro Abonos & Extras v11.0</title>
+    <title>GestorPro Abonos & Extras v11.1 (Fixed)</title>
     
     <link rel="icon" href="data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAxMDAgMTAwIj48Y2lyY2xlIGN4PSI1MCIgY3k9IjUwIiByPSI1MCIgZmlsbD0iIzRiNjA0MyIvPjxwYXRoIGQ9Ik01MCA1MCBMNTAgMCBBNTAgNTAgMCAwIDEgMTAwIDUwIFoiIGZpbGw9IiM4YmMzNGEiLz48L3N2Zz4=" type="image/svg+xml">
 
@@ -110,8 +110,10 @@
         .progress-fill { height: 100%; background: linear-gradient(90deg, var(--primary), var(--tech-accent)); width: 0%; transition: width 0.5s ease; position: relative; }
         .progress-text { position: absolute; right: 10px; top: 0; line-height: 25px; font-size: 12px; font-weight: bold; color: white; text-shadow: 1px 1px 2px black; }
 
-        /* RELATÓRIO ANALÍTICO */
-        .report-table th { background: #222; color: #ccc; font-size: 11px; text-transform: uppercase; }
+        /* RELATÓRIO ANALÍTICO - ORDENÁVEL */
+        .report-table th { background: #222; color: #ccc; font-size: 11px; text-transform: uppercase; cursor: pointer; user-select: none; transition: 0.2s; }
+        .report-table th:hover { background: #333; color: var(--tech-accent); }
+        .report-table th i { margin-left: 5px; opacity: 0.5; }
         .report-table td { font-size: 12px; border-bottom: 1px solid #333; }
         .turn-badge { font-size: 10px; padding: 2px 6px; border-radius: 3px; font-weight: bold; }
         .turn-day { background: #f39c12; color: #000; }
@@ -270,7 +272,7 @@
             <div class="header-left-block">
                 <div class="title-line">
                     <i class="fas fa-crosshairs main-icon"></i>
-                    <span class="logo-title">GestorPro - Controle de Abonos e Extras <span style="font-size:14px; color:#666">V11.0 TACTICAL</span></span>
+                    <span class="logo-title">GestorPro - Controle de Abonos e Extras <span style="font-size:14px; color:#666">V11.1 TACTICAL</span></span>
                 </div>
                 <div class="user-id-line">
                     <i class="fas fa-skull peto-skull"></i> SD PM D. BARRETO - Mat: 92.137.431
@@ -380,12 +382,22 @@
             </div>
             
             <div style="margin-bottom:30px; background:#16181b; padding:15px; border-radius:4px; border:1px solid #333;">
-                <h4 style="color:var(--tech-accent); border-bottom:1px solid #333; padding-bottom:10px; margin-bottom:15px; text-transform:uppercase;">
-                    <i class="fas fa-list"></i> Relatório de Serviço (Diurno/Noturno)
+                <h4 style="color:var(--tech-accent); border-bottom:1px solid #333; padding-bottom:10px; margin-bottom:15px; text-transform:uppercase; display:flex; justify-content:space-between; align-items:center;">
+                    <span><i class="fas fa-list"></i> Relatório de Serviço</span>
+                    <small style="font-size:10px; color:#666;">CLIQUE NAS COLUNAS P/ ORDENAR</small>
                 </h4>
                 <div style="overflow-x:auto;">
                     <table class="report-table">
-                        <thead><tr><th>Data</th><th>Cidade</th><th>Turno</th><th>Horas</th><th>V. Diária</th><th>Valor</th></tr></thead>
+                        <thead>
+                            <tr>
+                                <th onclick="setSort('data')">Data <i class="fas fa-sort"></i></th>
+                                <th onclick="setSort('cidade')">Cidade <i class="fas fa-sort"></i></th>
+                                <th>Turno</th>
+                                <th>Horas</th>
+                                <th>Tipo</th>
+                                <th onclick="setSort('valor')">Valor <i class="fas fa-sort"></i></th>
+                            </tr>
+                        </thead>
                         <tbody id="report-tbody"></tbody>
                     </table>
                 </div>
@@ -533,6 +545,7 @@
         let donutChart = null; // Chart Rosca
         let comparisonChart = null; // Chart Comparativo
         let dadosNuvemCache = {}; 
+        let analysisSort = 'data'; // Default sort
         
         // Cores específicas para as cidades (Tema Escuro/Tático)
         const cityColorMap = {
@@ -591,7 +604,8 @@
             const fMes = document.getElementById('filtro-mes').value;
             const fAno = document.getElementById('filtro-ano').value;
             let mesRef = fMes || String(new Date().getMonth()+1).padStart(2,'0');
-            let anoRef = fAno || String(new Date().getFullYear());
+            // SE FILTRO DE ANO FOR 'ALL', USA ANO ATUAL PARA CALCULO DO BOT
+            let anoRef = (!fAno || fAno === 'all') ? String(new Date().getFullYear()) : fAno;
             
             let horasMes = dbExtras.filter(d => d.data.split('-')[1] === mesRef && d.data.split('-')[0] === anoRef)
                                    .reduce((a,b)=>a+parseFloat(b.horas||0),0);
@@ -654,7 +668,6 @@
                 if(!currentCloudData || typeof currentCloudData !== 'object') currentCloudData = {};
                 
                 // Removendo anexos pesados antes de enviar pra nuvem (evitar erro de payload)
-                // Se quiser salvar PDF na nuvem, precisaria de lógica mais complexa ou Google Drive API.
                 const abonosClean = dbExtras.map(item => ({
                     ...item,
                     anexo: item.anexo ? "COM_ANEXO_LOCAL" : "",
@@ -725,37 +738,36 @@
         
         // FILTRO DINÂMICO DE ANO (MODERNO)
         function atualizarFiltroAno() {
-            // Pega anos existentes no banco
             let anosDados = [...new Set(dbExtras.map(d => d.data.split('-')[0]))];
-            // Adiciona ano atual se não existir
             let anoAtual = String(new Date().getFullYear());
             if(!anosDados.includes(anoAtual)) anosDados.push(anoAtual);
             
-            // Ordena decrescente
             anosDados.sort((a,b) => b - a);
 
             const criarOpcoes = (selectorId) => {
                 const sel = document.getElementById(selectorId);
                 const valorAtual = sel.value;
-                sel.innerHTML = ''; // Limpa
+                sel.innerHTML = ''; 
                 
-                // Opção "Todos" ou ano atual default
+                // ADICIONA "TODOS OS ANOS" PARA AMBOS OS FILTROS AGORA
+                let optAll = document.createElement('option'); optAll.value="all"; optAll.text="TODOS OS ANOS";
+                sel.add(optAll);
+
                 if(selectorId === 'filtro-ano') {
-                    let optAll = document.createElement('option'); optAll.value=""; optAll.text="ANO ATUAL ("+anoAtual+")";
-                    sel.add(optAll);
-                } else {
-                    let optAll = document.createElement('option'); optAll.value="all"; optAll.text="TODOS OS ANOS";
-                    sel.add(optAll);
+                   // Se for o filtro principal, pode querer adicionar o ano atual como atalho também, ou deixar All
+                   // Para manter padrão:
+                   let optCurr = document.createElement('option'); optCurr.value=anoAtual; optCurr.text="ANO ATUAL ("+anoAtual+")";
+                   sel.add(optCurr);
                 }
 
                 anosDados.forEach(a => {
-                    let o = document.createElement('option');
-                    o.value = a; o.text = a;
-                    sel.add(o);
+                     // Evita duplicar se ja foi adicionado (ex: ano atual)
+                     if(a !== anoAtual || selectorId !== 'filtro-ano') {
+                        let o = document.createElement('option'); o.value = a; o.text = a; sel.add(o);
+                     }
                 });
 
-                // Tenta manter seleção anterior ou define default
-                if(valorAtual && anosDados.includes(valorAtual)) sel.value = valorAtual;
+                if(valorAtual && (anosDados.includes(valorAtual) || valorAtual === 'all')) sel.value = valorAtual;
             };
 
             criarOpcoes('filtro-ano');
@@ -764,7 +776,7 @@
 
         function resetFiltros() {
             document.getElementById('filtro-mes').value='';
-            document.getElementById('filtro-ano').value='';
+            document.getElementById('filtro-ano').value='all';
             renderTable();
         }
 
@@ -777,6 +789,11 @@
         }
 
         /* --- GRÁFICOS E ANÁLISE --- */
+        function setSort(col) {
+            analysisSort = col;
+            triggerUpdateAnalysis();
+        }
+
         function updateAnalysis(fullData) {
             const fMes = document.getElementById('an-filtro-mes').value;
             const fAno = document.getElementById('an-filtro-ano').value;
@@ -787,21 +804,28 @@
             // Lógica de Filtro
             if (fAno && fAno !== 'all') {
                 filteredData = filteredData.filter(d => d.data.split('-')[0] === fAno);
-            } else if (!fAno && fMes === "") { // Default painel: ano atual
+            } else if (!fAno && fMes === "") { 
+                 // Default se não tiver filtro
                  filteredData = filteredData.filter(d => d.data.split('-')[0] === currentYear);
             }
             
             if (fMes && fMes !== 'all') {
                 filteredData = filteredData.filter(d => d.data.split('-')[1] === fMes);
-            } else if (fMes === "") {
+            } else if (fMes === "" && (!fAno || fAno !== 'all')) {
+                // Se não escolheu mês e nem Todos os Anos, filtra mês atual
                 const mesAtual = String(new Date().getMonth()+1).padStart(2,'0');
                 filteredData = filteredData.filter(d => d.data.split('-')[1] === mesAtual);
             }
 
+            // ORDENAÇÃO
+            if(analysisSort === 'data') filteredData.sort((a,b) => new Date(b.data) - new Date(a.data));
+            if(analysisSort === 'valor') filteredData.sort((a,b) => b.valor - a.valor);
+            if(analysisSort === 'cidade') filteredData.sort((a,b) => a.cidade.localeCompare(b.cidade));
+
             // GERAÇÃO RELATÓRIO TÉCNICO (TABELA)
             const reportBody = document.getElementById('report-tbody');
             reportBody.innerHTML = '';
-            filteredData.sort((a,b) => new Date(a.data) - new Date(b.data)).forEach(d => {
+            filteredData.forEach(d => {
                 let turnoClass = d.periodo === 'DIURNO' ? 'turn-day' : 'turn-night';
                 let turnoLabel = d.periodo || 'N/A';
                 
@@ -869,7 +893,6 @@
             });
 
             let yearData = fullData;
-            // Para comparativo anual, usa apenas o filtro de ANO se existir, ignora o mes
             let chartAno = fAno && fAno !== 'all' ? fAno : currentYear;
             yearData = fullData.filter(d => d.data.split('-')[0] === chartAno);
             
@@ -909,42 +932,56 @@
 
         /* --- CRUD & TABLE --- */
         function abrirModal(id=null){
-            document.getElementById('modal').style.display='flex'; document.getElementById('edit-id').value=id||''; 
-            tempAnexoBase64=null; tempPdfBase64=null;
-            document.getElementById('paste-preview-img').style.display='none'; document.getElementById('paste-preview-img').src='';
-            document.getElementById('m-arquivo').value = ""; // m-arquivo não existe mais no HTML novo, mas caso exista legado
-            document.getElementById('m-pdf-escala').value = "";
+            // 1. LIMPEZA TOTAL (RESET)
+            tempAnexoBase64 = null;
+            tempPdfBase64 = null;
+            document.getElementById('edit-id').value = '';
+            document.getElementById('m-pdf-escala').value = ''; 
+            document.getElementById('paste-preview-img').style.display = 'none';
+            document.getElementById('paste-preview-img').src = '';
+            document.getElementById('m-valor').value = '';
+            document.getElementById('m-obs').value = '';
+            document.getElementById('m-horas').value = '8';
+            document.getElementById('m-periodo').value = 'DIURNO';
+            document.getElementById('m-tipo').value = 'H.E';
+            document.getElementById('m-natureza').value = 'VOLUNTÁRIO';
+            document.getElementById('m-status').value = 'A RECEBER';
+
+            // Data padrão (Hoje)
+            const hoje = new Date();
+            let anoSug = hoje.getFullYear();
+            let mesSug = String(hoje.getMonth()+1).padStart(2,'0');
+            let diaSug = String(hoje.getDate()).padStart(2,'0');
+            document.getElementById('m-data').value = `${anoSug}-${mesSug}-${diaSug}`;
+
+            document.getElementById('modal').style.display='flex'; 
 
             if(id){
-                const i=dbExtras.find(x=>x.id==id); 
-                document.getElementById('m-cidade').value=i.cidade;
-                if(!cidades.includes(i.cidade)){ 
-                    let o=document.createElement('option'); o.value=i.cidade; o.text=i.cidade; 
-                    document.getElementById('m-cidade').add(o,0); document.getElementById('m-cidade').value=i.cidade; 
+                // EDITAR: Preenche com dados existentes
+                document.getElementById('edit-id').value = id;
+                const i = dbExtras.find(x => x.id == id);
+                if(i) {
+                    document.getElementById('m-cidade').value = i.cidade;
+                    if(!cidades.includes(i.cidade)){ 
+                        let o=document.createElement('option'); o.value=i.cidade; o.text=i.cidade; 
+                        document.getElementById('m-cidade').add(o,0); document.getElementById('m-cidade').value=i.cidade; 
+                    }
+                    document.getElementById('m-data').value = i.data; 
+                    document.getElementById('m-valor').value = toBRL(i.valor); 
+                    document.getElementById('m-tipo').value = i.tipo || 'H.E'; 
+                    document.getElementById('m-natureza').value = i.natureza || 'VOLUNTÁRIO';
+                    document.getElementById('m-horas').value = i.horas; 
+                    document.getElementById('m-status').value = i.status; 
+                    document.getElementById('m-obs').value = i.obs;
+                    document.getElementById('m-periodo').value = i.periodo || 'DIURNO';
+                    
+                    if(i.anexo){ 
+                        tempAnexoBase64=i.anexo; 
+                        document.getElementById('paste-preview-img').src=i.anexo; 
+                        document.getElementById('paste-preview-img').style.display='block'; 
+                    }
+                    if(i.pdfEscala) { tempPdfBase64 = i.pdfEscala; }
                 }
-                document.getElementById('m-data').value=i.data; 
-                document.getElementById('m-valor').value=toBRL(i.valor); 
-                document.getElementById('m-tipo').value=i.tipo || 'H.E'; 
-                document.getElementById('m-natureza').value=i.natureza || 'VOLUNTÁRIO';
-                document.getElementById('m-horas').value=i.horas; 
-                document.getElementById('m-status').value=i.status; 
-                document.getElementById('m-obs').value=i.obs;
-                // Novos campos
-                document.getElementById('m-periodo').value = i.periodo || 'DIURNO';
-                
-                if(i.anexo){ tempAnexoBase64=i.anexo; document.getElementById('paste-preview-img').src=i.anexo; document.getElementById('paste-preview-img').style.display='block'; }
-                if(i.pdfEscala) { tempPdfBase64 = i.pdfEscala; }
-            } else {
-                const filtroAno = document.getElementById('filtro-ano').value;
-                const hoje = new Date();
-                let anoSug = filtroAno ? filtroAno : hoje.getFullYear();
-                let mesSug = String(hoje.getMonth()+1).padStart(2,'0');
-                let diaSug = String(hoje.getDate()).padStart(2,'0');
-                document.getElementById('m-data').value=`${anoSug}-${mesSug}-${diaSug}`; 
-                document.getElementById('m-valor').value=''; document.getElementById('m-obs').value=''; document.getElementById('m-horas').value='8';
-                document.getElementById('m-natureza').value='VOLUNTÁRIO';
-                document.getElementById('m-tipo').value='H.E';
-                document.getElementById('m-periodo').value='DIURNO';
             }
         }
         function fecharModal(){ document.getElementById('modal').style.display='none'; }
@@ -983,11 +1020,12 @@
         function renderTable(){
             const tb=document.getElementById('tbody-extras'); tb.innerHTML='';
             const fMes = document.getElementById('filtro-mes').value;
-            const fAno = document.getElementById('filtro-ano').value || String(new Date().getFullYear());
+            const fAno = document.getElementById('filtro-ano').value;
             
             let lista = dbExtras.sort((a,b)=>new Date(b.data)-new Date(a.data));
             if(fMes) lista = lista.filter(d => d.data.split('-')[1] === fMes);
-            if(fAno) lista = lista.filter(d => d.data.split('-')[0] === fAno);
+            // FILTRO 'ALL' AGORA ACEITO
+            if(fAno && fAno !== 'all') lista = lista.filter(d => d.data.split('-')[0] === fAno);
             
             let t=0,pg=0,pd=0, th=0;
             lista.forEach(d=>{
