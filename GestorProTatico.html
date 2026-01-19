@@ -621,10 +621,22 @@
             });
         }
 
+        // Função para Navegar nos Meses
+        function mudarMes(delta) {
+            dataAtual.setMonth(dataAtual.getMonth() + delta);
+            anoView = dataAtual.getFullYear();
+            document.getElementById('ano-selecao').value = anoView;
+            atualizarTitulosAno();
+            renderAgenda();
+        }
+
         function mudarAno(ano) {
             if(!ano || ano < 2000) return;
             anoView = parseInt(ano);
             dataAtual.setFullYear(anoView);
+            dataAtual.setMonth(0); // Reseta para Janeiro se mudar o ano manualmente
+            dataAtual.setDate(1);
+
             document.getElementById('an-filtro-ano').value = anoView;
             atualizarTitulosAno();
             renderizarTudo();
@@ -1003,18 +1015,39 @@
 
         // --- OUTRAS FUNÇÕES (Agenda, Fluxo, PDF) ---
         function renderAgenda() {
-            const grid = document.getElementById('calendar-grid'); const titulo = document.getElementById('cal-titulo'); grid.innerHTML = '';
-            dataAtual.setFullYear(anoView); const y = dataAtual.getFullYear(), m = dataAtual.getMonth(); titulo.innerText = `${meses[m]} ${y}`;
-            ['D','S','T','Q','Q','S','S'].forEach(d=>grid.innerHTML+=`<div style="text-align:center;font-size:10px;font-weight:bold;color:#666">${d}</div>`);
-            const firstDay = new Date(y, m, 1).getDay(); const daysInMonth = new Date(y, m+1, 0).getDate();
+            const grid = document.getElementById('calendar-grid'); 
+            const titulo = document.getElementById('cal-titulo'); 
+            grid.innerHTML = '';
+            
+            // Usamos dataAtual, que agora é manipulada pela função mudarMes
+            const y = dataAtual.getFullYear(); 
+            const m = dataAtual.getMonth(); 
+            
+            titulo.innerText = `${meses[m]} ${y}`; // Ex: FEVEREIRO 2026
+
+            ['D','S','T','Q','Q','S','S'].forEach(d => 
+                grid.innerHTML += `<div style="text-align:center;font-size:10px;font-weight:bold;color:#666">${d}</div>`
+            );
+
+            const firstDay = new Date(y, m, 1).getDay(); 
+            const daysInMonth = new Date(y, m+1, 0).getDate();
+
             for(let i=0; i<firstDay; i++) grid.innerHTML += `<div style="background:#181a1d"></div>`;
+
             for(let d=1; d<=daysInMonth; d++) {
                 const dt = `${y}-${String(m+1).padStart(2,'0')}-${String(d).padStart(2,'0')}`;
-                const evs = dados.eventos.filter(e => e.data === dt); let html = '';
+                const evs = dados.eventos.filter(e => e.data === dt); 
+                
+                let html = '';
                 evs.forEach(e => { html += `<div class="event-chip" onclick="verDetalhe('${e.id}')">${e.desc.substr(0,10)}</div>`; });
-                grid.innerHTML += `<div class="day-cell"><span class="day-header">${d}</span>${html}</div>`;
+                
+                // Destaque para o dia atual
+                let isToday = (new Date().toDateString() === new Date(y, m, d).toDateString()) ? 'border: 1px solid var(--tech-accent);' : '';
+
+                grid.innerHTML += `<div class="day-cell" style="${isToday}"><span class="day-header">${d}</span>${html}</div>`;
             }
         }
+
         function verDetalhe(id) {
             const ev = dados.eventos.find(e=>e.id==id); if(!ev) return;
             currentEventID=id; document.getElementById('det-titulo').innerText=ev.desc;
