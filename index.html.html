@@ -5,8 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>SISTEMA INTEGRADO PMBA - GESTÃO TÁTICA</title>
     
-    <link rel="icon" href="logo_pmba.png" type="image/png">
-    <link rel="icon" href="https://upload.wikimedia.org/wikipedia/commons/2/28/Bras%C3%A3o_PMBA.png" type="image/png">
+    <link rel="icon" href="data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAxMDAgMTAwIj48Y2lyY2xlIGN4PSI1MCIgY3k9IjUwIiByPSI1MCIgZmlsbD0iIzRiNjA0MyIvPjxwYXRoIGQ9Ik01MCA1MCBMNTAgMCBBNTAgNTAgMCAwIDEgMTAwIDUwIFoiIGZpbGw9IiM4YmMzNGEiLz48L3N2Zz4=" type="image/svg+xml">
 
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link href="https://fonts.googleapis.com/css2?family=Rajdhani:wght@500;600;700&family=Roboto:wght@400;500;700&display=swap" rel="stylesheet">
@@ -212,13 +211,19 @@
             <div class="menu-label" style="margin-top:0">Sistemas Internos</div>
             
             <button class="nav-btn active" onclick="carregarApp('GestorProTatico.html', this)">
-                <i class="fas fa-chart-pie"></i>
+                <img src="data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAxMDAgMTAwIj48Y2lyY2xlIGN4PSI1MCIgY3k9IjUwIiByPSI1MCIgZmlsbD0iIzRiNjA0MyIvPjxwYXRoIGQ9Ik01MCA1MCBMNTAgMCBBNTAgNTAgMCAwIDEgMTAwIDUwIFoiIGZpbGw9IiM4YmMzNGEiLz48L3N2Zz4=" 
+                     style="width: 20px; height: 20px; margin-right: 0px; object-fit: contain;">
                 <span>GESTOR PRO</span>
             </button>
 
             <button class="nav-btn" onclick="carregarApp('AbonEx_Tactical.html', this)">
                 <i class="fas fa-file-contract"></i>
                 <span>ABONOS & EXTRAS</span>
+            </button>
+
+            <button class="nav-btn" type="button" onclick="carregarApp('GestorVeiculo.html', this)">
+                <i class="fas fa-car" style="color: #f1c40f;"></i>
+                <span>GESTÃO VTR (DÍVIDA)</span>
             </button>
 
             <div class="menu-label">Portais Externos</div>
@@ -273,7 +278,6 @@
 
     <script>
         // --- LÓGICA DA FOTO DE PERFIL ---
-        // Ao carregar, verifica se tem foto salva
         window.addEventListener('load', () => {
             const savedAvatar = localStorage.getItem('user_avatar_base64');
             if(savedAvatar) {
@@ -285,9 +289,7 @@
             if (input.files && input.files[0]) {
                 const reader = new FileReader();
                 reader.onload = function(e) {
-                    // Atualiza a imagem na tela
                     document.getElementById('user-avatar').src = e.target.result;
-                    // Salva no navegador para não sumir ao reiniciar
                     localStorage.setItem('user_avatar_base64', e.target.result);
                 };
                 reader.readAsDataURL(input.files[0]);
@@ -302,6 +304,8 @@
             loader.style.display = 'flex';
             document.querySelectorAll('button.nav-btn').forEach(b => b.classList.remove('active'));
             if(btn) btn.classList.add('active');
+            
+            // Força o carregamento no frame
             const frame = document.getElementById('app-frame');
             frame.src = arquivo;
         }
