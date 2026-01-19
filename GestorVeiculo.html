@@ -1,0 +1,450 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Gestão VTR - Veículo</title>
+    
+    <link rel="icon" href="data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCA1MTIgNTEyIj48cGF0aCBmaWxsPSIjZjFjNDBmIiBkPSJNMTM1LjIgMTE3LjRMMTA5LjEgMTkySDQwMi45bC0yNi4xLTc0LjZDMzcyLjMgMTA0LjYgMzYwLjIgOTYgMzQ2LjYgOTZIMTY1LjRjLTEzLjYgMC0yNS43IDguNi0zMC4yIDIxLjR6TTM5LjYgMTk2LjhMNzQuOCA5Ni4zQzg4LjMgNTcuOCAxMjQuNiAzMiAxNjUuNCAzMkgzNDYuNmM0MC44IDAgNzcuMSAyNS44IDkwLjYgNjQuM2wzNS4yIDEwMC41YzIzLjIgOS42IDM5LjYgMzIuNSAzOS42IDU5LjJWMzUyYzAgMjYuNS0yMS41IDQ4LTQ4IDQ4SDQ0OGMtOC44IDAtMTYtNy4yLTE2LTE2VjM1Mkg4MHYzMmMwIDguOC03LjIgMTYtMTYgMTZINDU4Yy0yNi41IDAtNDgtMjEuNS00OC00OFYyNTZjMC0yNi43IDE2LjQtNDkuNiAzOS42LTU5LjJ6TTEyOCAyODhhMzIgMzIgMCAxIDAgLTY0IDAgMzIgMzIgMCAxIDAgNjQgMHptMjg4IDMyYTMyIDMyIDAgMSAwIDAtNjQgMzIgMzIgMCAxIDAgMCA2NHoiLz48L3N2Zz4=" type="image/svg+xml">
+
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Rajdhani:wght@500;600;700&family=Roboto:wght@400;500;700&display=swap" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+    <style>
+        :root {
+            --bg-body: #121416;
+            --bg-panel: #1e2124;
+            --primary: #556B2F;
+            --primary-dark: #3b4d21;    
+            --tech-accent: #8bc34a;
+            --alert: #f46a6a;
+            --text-main: #e0e0e0;
+            --border: #383f45;
+        }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        
+        body { 
+            font-family: 'Roboto', sans-serif; 
+            background-color: var(--bg-body); 
+            background-image: radial-gradient(#2c2f33 1px, transparent 1px);
+            background-size: 20px 20px;
+            color: var(--text-main); 
+            padding: 20px; padding-bottom: 80px; 
+        }
+
+        .container { max-width: 1200px; margin: 0 auto; }
+
+        .header-tactical {
+            border-bottom: 2px solid var(--primary);
+            padding-bottom: 15px; margin-bottom: 25px;
+            display: flex; justify-content: space-between; align-items: center;
+        }
+        .header-title { font-family: 'Rajdhani'; font-size: 24px; font-weight: 700; color: var(--tech-accent); text-transform: uppercase; letter-spacing: 2px; display: flex; align-items: center; gap: 10px; }
+        
+        .btn-config { background: transparent; border: 1px solid var(--border); color: #888; padding: 5px 10px; cursor: pointer; border-radius: 4px; transition: 0.2s; }
+        .btn-config:hover { color: var(--tech-accent); border-color: var(--tech-accent); }
+
+        /* CARDS */
+        .creditor-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 15px; margin-bottom: 30px; }
+        .creditor-card { background: var(--bg-panel); border: 1px solid var(--border); padding: 20px; border-radius: 4px; position: relative; overflow: hidden; }
+        .creditor-card::before { content:''; position: absolute; left:0; top:0; height:100%; width:4px; background: var(--border); }
+        .creditor-card.banco::before { background: #f46a6a; }
+        .creditor-card.familia::before { background: #3498db; }
+        .cred-header { display: flex; justify-content: space-between; margin-bottom: 15px; font-family: 'Rajdhani'; text-transform: uppercase; }
+        .cred-name { font-weight: 700; font-size: 18px; color: white; }
+        .cred-val-total { font-size: 14px; color: #888; }
+        .progress-container { background: #111; height: 10px; border-radius: 5px; overflow: hidden; margin-bottom: 10px; border: 1px solid #333; }
+        .progress-bar { height: 100%; background: var(--primary); width: 0%; transition: width 1s ease-in-out; }
+        .cred-stats { display: flex; justify-content: space-between; font-size: 12px; color: #aaa; font-family: 'Courier New'; }
+        .money-remaining { color: var(--alert); font-weight: bold; }
+
+        /* DASHBOARD */
+        .dashboard-main { display: grid; grid-template-columns: 2fr 1fr; gap: 20px; margin-bottom: 30px; }
+        .chart-box { background: var(--bg-panel); padding: 20px; border: 1px solid var(--border); border-radius: 4px; height: 300px; }
+        .kpi-box { display: flex; flex-direction: column; gap: 15px; }
+        .kpi-card { background: var(--bg-panel); padding: 15px; border-left: 4px solid var(--primary); border-radius: 2px; }
+        .kpi-label { font-size: 10px; text-transform: uppercase; letter-spacing: 1px; color: #888; }
+        .kpi-value { font-family: 'Rajdhani'; font-size: 24px; font-weight: 700; color: white; }
+
+        /* FORM */
+        .action-panel { background: #181a1d; border: 1px solid var(--tech-accent); padding: 20px; border-radius: 4px; margin-bottom: 30px; }
+        .action-title { color: var(--tech-accent); font-family: 'Rajdhani'; text-transform: uppercase; margin-bottom: 15px; font-weight: bold; border-bottom: 1px solid #333; padding-bottom: 5px; }
+        .form-grid { display: grid; grid-template-columns: 1fr 1fr 1fr 1fr auto; gap: 10px; align-items: end; }
+        .form-group label { display: block; font-size: 10px; color: #aaa; margin-bottom: 5px; text-transform: uppercase; }
+        .form-control { width: 100%; background: #0f1012; border: 1px solid #444; color: white; padding: 10px; font-family: 'Courier New'; }
+        .form-control:focus { border-color: var(--tech-accent); outline: none; }
+        .btn-pay { background: var(--tech-accent); color: #000; border: none; padding: 10px 20px; font-weight: bold; cursor: pointer; height: 38px; text-transform: uppercase; font-family: 'Rajdhani'; }
+        
+        /* TABLE */
+        .history-section { background: var(--bg-panel); border: 1px solid var(--border); padding: 20px; border-radius: 4px; }
+        table { width: 100%; border-collapse: collapse; font-size: 13px; }
+        th { text-align: left; color: var(--tech-accent); padding: 10px; border-bottom: 2px solid var(--primary); text-transform: uppercase; font-size: 11px; }
+        td { padding: 10px; border-bottom: 1px solid #333; color: #ccc; }
+        .juros-badge { color: var(--alert); font-size: 11px; }
+
+        /* MODAL */
+        .modal-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.85); z-index: 2000; display: none; justify-content: center; align-items: center; padding: 10px; backdrop-filter: blur(5px); }
+        .modal-box { background: #1e2124; width: 100%; max-width: 400px; padding: 25px; border: 1px solid var(--primary); border-radius: 4px; box-shadow: 0 0 30px rgba(0,0,0,0.8); }
+        .btn-close-modal { background: none; border: none; font-size: 18px; color: #666; cursor: pointer; }
+        .btn-save-modal { width: 100%; background: var(--primary); color: white; border: none; padding: 12px; font-weight: bold; margin-top: 15px; cursor: pointer; }
+
+        .toast { position: fixed; top: 20px; right: 20px; background: var(--primary-dark); color: white; padding: 12px 25px; border: 1px solid var(--tech-accent); box-shadow: 0 5px 15px rgba(0,0,0,0.5); display: none; z-index: 3000; font-weight: 600; text-transform: uppercase; letter-spacing: 1px; }
+
+        @media (max-width: 768px) {
+            .dashboard-main { grid-template-columns: 1fr; }
+            .form-grid { grid-template-columns: 1fr; }
+        }
+    </style>
+</head>
+<body>
+
+<div id="toast" class="toast"><i class="fas fa-satellite-dish"></i> Sincronizado: Base de Dados</div>
+
+<div id="modal-config" class="modal-overlay">
+    <div class="modal-box">
+        <div style="display:flex; justify-content:space-between; margin-bottom:20px; border-bottom:1px solid #444; padding-bottom:10px;">
+            <h3 style="color:var(--tech-accent); font-family:'Rajdhani';">CONFIGURAR VALORES TOTAIS</h3>
+            <button class="btn-close-modal" onclick="fecharModalConfig()">X</button>
+        </div>
+        <div class="form-group" style="margin-bottom:15px;">
+            <label>BANCO - DÍVIDA TOTAL (R$)</label>
+            <input type="number" id="cfg-banco" class="form-control">
+        </div>
+        <div class="form-group" style="margin-bottom:15px;">
+            <label>MÃE - DÍVIDA TOTAL (R$)</label>
+            <input type="number" id="cfg-mae" class="form-control">
+        </div>
+        <div class="form-group" style="margin-bottom:15px;">
+            <label>PAI - DÍVIDA TOTAL (R$)</label>
+            <input type="number" id="cfg-pai" class="form-control">
+        </div>
+        <button class="btn-save-modal" onclick="salvarConfigDividas()">ATUALIZAR CONTRATOS</button>
+    </div>
+</div>
+
+<div class="container">
+    <div class="header-tactical">
+        <div class="header-title">
+            <i class="fas fa-car-side"></i> CONTROLE DE VTR (FINANCEIRO)
+            <button class="btn-config" onclick="abrirModalConfig()" title="Configurar Valores da Dívida"><i class="fas fa-cog"></i></button>
+        </div>
+        <div style="text-align:right">
+            <div style="font-size:10px; color:#888;">PREVISÃO DE TÉRMINO</div>
+            <div id="forecast-date" style="color:var(--tech-accent); font-family:'Courier New'; font-weight:bold;">...</div>
+        </div>
+    </div>
+
+    <div class="creditor-grid">
+        <div class="creditor-card banco">
+            <div class="cred-header"><span class="cred-name"><i class="fas fa-university"></i> BANCO</span><span class="cred-val-total" id="lbl-total-banco">...</span></div>
+            <div class="progress-container"><div id="prog-banco" class="progress-bar" style="width: 0%"></div></div>
+            <div class="cred-stats"><span>PAGO: <span id="pago-banco">R$ 0,00</span></span><span class="money-remaining">FALTA: <span id="falta-banco">...</span></span></div>
+        </div>
+
+        <div class="creditor-card familia">
+            <div class="cred-header"><span class="cred-name"><i class="fas fa-female"></i> MÃE</span><span class="cred-val-total" id="lbl-total-mae">...</span></div>
+            <div class="progress-container"><div id="prog-mae" class="progress-bar" style="width: 0%"></div></div>
+            <div class="cred-stats"><span>PAGO: <span id="pago-mae">R$ 0,00</span></span><span class="money-remaining">FALTA: <span id="falta-mae">...</span></span></div>
+        </div>
+
+        <div class="creditor-card familia">
+            <div class="cred-header"><span class="cred-name"><i class="fas fa-male"></i> PAI</span><span class="cred-val-total" id="lbl-total-pai">...</span></div>
+            <div class="progress-container"><div id="prog-pai" class="progress-bar" style="width: 0%"></div></div>
+            <div class="cred-stats"><span>PAGO: <span id="pago-pai">R$ 0,00</span></span><span class="money-remaining">FALTA: <span id="falta-pai">...</span></span></div>
+        </div>
+    </div>
+
+    <div class="dashboard-main">
+        <div class="chart-box">
+            <h4 style="color:#888; font-size:12px; margin-bottom:10px; text-transform:uppercase;">PROGRESSO DE LIQUIDAÇÃO TOTAL</h4>
+            <canvas id="mainChart"></canvas>
+        </div>
+        <div class="kpi-box">
+            <div class="kpi-card">
+                <div class="kpi-label">TOTAL AMORTIZADO</div>
+                <div class="kpi-value" style="color:var(--tech-accent);" id="kpi-total-pago">R$ 0,00</div>
+            </div>
+            <div class="kpi-card" style="border-left-color: var(--alert);">
+                <div class="kpi-label">DÍVIDA RESTANTE</div>
+                <div class="kpi-value" style="color:var(--alert);" id="kpi-restante">...</div>
+            </div>
+            <div class="kpi-card" style="border-left-color: #f1c40f;">
+                <div class="kpi-label">JUROS PAGOS (PERDA TÁTICA)</div>
+                <div class="kpi-value" style="color:#f1c40f;" id="kpi-juros">R$ 0,00</div>
+                <div style="font-size:10px; color:#666; margin-top:5px;">Este valor não abate a dívida.</div>
+            </div>
+        </div>
+    </div>
+
+    <div class="action-panel">
+        <div class="action-title"><i class="fas fa-money-bill-wave"></i> LANÇAR PARCELA PAGA</div>
+        <div class="form-grid">
+            <div class="form-group">
+                <label>CREDOR ALVO</label>
+                <select id="input-credor" class="form-control">
+                    <option value="banco">🏦 BANCO</option>
+                    <option value="mae">👩 MÃE</option>
+                    <option value="pai">👨 PAI</option>
+                </select>
+            </div>
+            <div class="form-group">
+                <label>DATA PAGAMENTO</label>
+                <input type="date" id="input-data" class="form-control">
+            </div>
+            <div class="form-group">
+                <label>VALOR TOTAL PAGO (R$)</label>
+                <input type="number" id="input-valor" class="form-control" placeholder="0.00">
+            </div>
+            <div class="form-group">
+                <label>DOS QUAIS SÃO JUROS (R$)</label>
+                <input type="number" id="input-juros" class="form-control" placeholder="0.00" value="0">
+            </div>
+            <button class="btn-pay" onclick="registrarPagamento()">CONFIRMAR</button>
+        </div>
+    </div>
+
+    <div class="history-section">
+        <div class="action-title" style="border:none;"><i class="fas fa-list"></i> HISTÓRICO DE OPERAÇÕES</div>
+        <table>
+            <thead><tr><th>DATA</th><th>CREDOR</th><th>AMORTIZADO</th><th>JUROS</th><th>TOTAL</th><th>AÇÃO</th></tr></thead>
+            <tbody id="table-body"></tbody>
+        </table>
+    </div>
+
+</div>
+
+<script>
+    const API_URL = "https://script.google.com/macros/s/AKfycbxiVk0YLmZJp9ffSm6lvQw4xhYA-cwdWrHLDao63c2WyVCL0naRqC8v-LIfYN0JlGGo/exec"; 
+    
+    // ESTRUTURA GLOBAL PARA SINCRONIA
+    let dadosGlobal = {}; 
+    let veiculoData = {
+        config: {
+            banco: 20000,
+            mae: 5500,
+            pai: 1500
+        },
+        pagamentos: []
+    };
+
+    let chartInstance = null;
+
+    window.onload = function() {
+        const hoje = new Date();
+        document.getElementById('input-data').value = hoje.toISOString().split('T')[0];
+        carregarNuvem();
+    };
+
+    // --- INTEGRAÇÃO COM A NUVEM ---
+    function carregarNuvem() {
+        // Tenta carregar do LocalStorage primeiro para velocidade
+        const local = localStorage.getItem('vtr_financeiro_db_full');
+        if(local) {
+            dadosGlobal = JSON.parse(local);
+            if(dadosGlobal.veiculo) veiculoData = dadosGlobal.veiculo;
+            atualizarInterface();
+        }
+
+        // Busca na API
+        fetch(API_URL)
+        .then(res => res.json())
+        .then(data => {
+            if(data && Object.keys(data).length > 0) {
+                dadosGlobal = data;
+                if(dadosGlobal.veiculo) {
+                    veiculoData = dadosGlobal.veiculo;
+                } else {
+                    // Se não existir, cria a estrutura
+                    dadosGlobal.veiculo = veiculoData;
+                }
+                localStorage.setItem('vtr_financeiro_db_full', JSON.stringify(dadosGlobal));
+                atualizarInterface();
+                mostrarToast("Base Sincronizada");
+            }
+        })
+        .catch(err => console.error("Erro ao baixar:", err));
+    }
+
+    function salvarNuvem() {
+        // Atualiza o objeto global
+        dadosGlobal.veiculo = veiculoData;
+        
+        // Salva Local
+        localStorage.setItem('vtr_financeiro_db_full', JSON.stringify(dadosGlobal));
+        atualizarInterface();
+
+        // Envia para API
+        fetch(API_URL, {
+            method: 'POST',
+            mode: 'no-cors',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(dadosGlobal)
+        }).then(() => {
+            mostrarToast("Dados Salvos na Nuvem");
+        });
+    }
+
+    function registrarPagamento() {
+        const credor = document.getElementById('input-credor').value;
+        const data = document.getElementById('input-data').value;
+        const valorTotal = parseFloat(document.getElementById('input-valor').value);
+        const valorJuros = parseFloat(document.getElementById('input-juros').value) || 0;
+
+        if(!valorTotal || valorTotal <= 0) return alert("Insira um valor válido.");
+        if(valorJuros >= valorTotal) return alert("O juros não pode ser maior que o valor total.");
+
+        const valorAmortizado = valorTotal - valorJuros;
+
+        const novoPagamento = {
+            id: Date.now(),
+            credor,
+            data,
+            total: valorTotal,
+            juros: valorJuros,
+            amortizado: valorAmortizado
+        };
+
+        veiculoData.pagamentos.push(novoPagamento);
+        
+        // Limpar campos
+        document.getElementById('input-valor').value = '';
+        document.getElementById('input-juros').value = '0';
+        
+        salvarNuvem();
+    }
+
+    function excluirPagamento(id) {
+        if(confirm("Confirma estorno deste lançamento?")) {
+            veiculoData.pagamentos = veiculoData.pagamentos.filter(p => p.id !== id);
+            salvarNuvem();
+        }
+    }
+
+    // --- CONFIGURAÇÃO E MODAL ---
+    function abrirModalConfig() {
+        document.getElementById('modal-config').style.display = 'flex';
+        document.getElementById('cfg-banco').value = veiculoData.config.banco;
+        document.getElementById('cfg-mae').value = veiculoData.config.mae;
+        document.getElementById('cfg-pai').value = veiculoData.config.pai;
+    }
+
+    function fecharModalConfig() {
+        document.getElementById('modal-config').style.display = 'none';
+    }
+
+    function salvarConfigDividas() {
+        const b = parseFloat(document.getElementById('cfg-banco').value) || 0;
+        const m = parseFloat(document.getElementById('cfg-mae').value) || 0;
+        const p = parseFloat(document.getElementById('cfg-pai').value) || 0;
+
+        veiculoData.config.banco = b;
+        veiculoData.config.mae = m;
+        veiculoData.config.pai = p;
+
+        salvarNuvem();
+        fecharModalConfig();
+    }
+
+    // --- INTERFACE E LÓGICA ---
+    function atualizarInterface() {
+        // Totais iniciais da config
+        const totalDividaInicial = veiculoData.config.banco + veiculoData.config.mae + veiculoData.config.pai;
+
+        // Atualizar Labels dos Totais
+        document.getElementById('lbl-total-banco').innerText = formatMoney(veiculoData.config.banco);
+        document.getElementById('lbl-total-mae').innerText = formatMoney(veiculoData.config.mae);
+        document.getElementById('lbl-total-pai').innerText = formatMoney(veiculoData.config.pai);
+
+        let resumo = {
+            banco: { pago: 0 },
+            mae: { pago: 0 },
+            pai: { pago: 0 },
+            geral: { amortizado: 0, juros: 0, totalPago: 0 }
+        };
+
+        veiculoData.pagamentos.forEach(p => {
+            if(resumo[p.credor]) resumo[p.credor].pago += p.amortizado;
+            resumo.geral.amortizado += p.amortizado;
+            resumo.geral.juros += p.juros;
+            resumo.geral.totalPago += p.total;
+        });
+
+        updateCard('banco', resumo.banco.pago, veiculoData.config.banco);
+        updateCard('mae', resumo.mae.pago, veiculoData.config.mae);
+        updateCard('pai', resumo.pai.pago, veiculoData.config.pai);
+
+        const restante = totalDividaInicial - resumo.geral.amortizado;
+        document.getElementById('kpi-total-pago').innerText = formatMoney(resumo.geral.amortizado);
+        document.getElementById('kpi-restante').innerText = formatMoney(restante);
+        document.getElementById('kpi-juros').innerText = formatMoney(resumo.geral.juros);
+
+        // Tabela
+        const tbody = document.getElementById('table-body');
+        tbody.innerHTML = '';
+        const sorted = [...veiculoData.pagamentos].sort((a,b) => b.data.localeCompare(a.data));
+        
+        sorted.forEach(p => {
+            tbody.innerHTML += `<tr><td>${formatDate(p.data)}</td><td style="font-weight:bold; color:${getColor(p.credor)}">${p.credor.toUpperCase()}</td><td style="color:var(--tech-accent)">${formatMoney(p.amortizado)}</td><td><span class="juros-badge">${formatMoney(p.juros)}</span></td><td style="font-weight:bold;">${formatMoney(p.total)}</td><td><button onclick="excluirPagamento(${p.id})" style="background:none; border:none; color:#f46a6a; cursor:pointer;"><i class="fas fa-trash"></i></button></td></tr>`;
+        });
+
+        renderChart(resumo.geral.amortizado, restante);
+        calcularPrevisao(resumo.geral.amortizado, restante);
+    }
+
+    function updateCard(key, pago, total) {
+        const falta = total - pago;
+        const pct = total > 0 ? (pago / total) * 100 : 100;
+
+        document.getElementById(`pago-${key}`).innerText = formatMoney(pago);
+        document.getElementById(`falta-${key}`).innerText = formatMoney(falta);
+        document.getElementById(`prog-${key}`).style.width = `${pct}%`;
+
+        if(falta <= 0) {
+            document.getElementById(`falta-${key}`).innerText = "QUITADO";
+            document.getElementById(`falta-${key}`).style.color = "var(--tech-accent)";
+        } else {
+            document.getElementById(`falta-${key}`).style.color = "var(--alert)";
+        }
+    }
+
+    function renderChart(pago, falta) {
+        const ctx = document.getElementById('mainChart').getContext('2d');
+        if(chartInstance) chartInstance.destroy();
+        chartInstance = new Chart(ctx, {
+            type: 'doughnut',
+            data: { labels: ['AMORTIZADO', 'FALTA PAGAR'], datasets: [{ data: [pago, falta], backgroundColor: ['#556B2F', '#181a1d'], borderColor: '#8bc34a', borderWidth: 1 }] },
+            options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { labels: { color: '#ccc', font: {family:'Rajdhani'} } } } }
+        });
+    }
+
+    function calcularPrevisao(totalAmortizado, restante) {
+        const el = document.getElementById('forecast-date');
+        if(veiculoData.pagamentos.length < 2) { el.innerText = "DADOS INSUFICIENTES"; return; }
+        const datas = veiculoData.pagamentos.map(p => new Date(p.data));
+        const minDate = new Date(Math.min.apply(null, datas));
+        const maxDate = new Date(Math.max.apply(null, datas));
+        let mesesPassados = (maxDate.getFullYear() - minDate.getFullYear()) * 12 + (maxDate.getMonth() - minDate.getMonth());
+        if (mesesPassados < 1) mesesPassados = 1;
+        const mediaMensal = totalAmortizado / mesesPassados;
+        if(mediaMensal <= 0) { el.innerText = "SEM PROGRESSO"; return; }
+        const mesesRestantes = restante / mediaMensal;
+        const dataFinal = new Date();
+        dataFinal.setMonth(dataFinal.getMonth() + mesesRestantes);
+        el.innerText = dataFinal.toLocaleDateString('pt-BR', {month:'long', year:'numeric'}).toUpperCase();
+    }
+
+    function mostrarToast(msg) {
+        const t = document.getElementById('toast');
+        t.innerText = msg; t.style.display = 'block';
+        setTimeout(() => t.style.display = 'none', 3000);
+    }
+
+    function formatMoney(v) { return v.toLocaleString('pt-BR', {style: 'currency', currency: 'BRL'}); }
+    function formatDate(d) { return d.split('-').reverse().join('/'); }
+    function getColor(c) { return c === 'banco' ? '#f46a6a' : '#3498db'; }
+
+</script>
+</body>
+</html>
