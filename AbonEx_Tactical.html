@@ -547,402 +547,291 @@
     </div>
 
     <script>
-        // =========================================================
-        // ⚠️ AREA DE CONFIGURAÇÃO CRÍTICA ⚠️
-        // COLE SUA NOVA URL DO GOOGLE SCRIPT AQUI ABAIXO:
-        const API_URL = "https://script.google.com/macros/s/AKfycbxiVk0YLmZJp9ffSm6lvQw4xhYA-cwdWrHLDao63c2WyVCL0naRqC8v-LIfYN0JlGGo/exec"; 
-        // =========================================================
+    // =========================================================
+    // ⚠️ CONFIGURAÇÃO CRÍTICA - NÃO ALTERE A LÓGICA ABAIXO ⚠️
+    const API_URL = "https://script.google.com/macros/s/AKfycbxiVk0YLmZJp9ffSm6lvQw4xhYA-cwdWrHLDao63c2WyVCL0naRqC8v-LIfYN0JlGGo/exec"; 
+    // =========================================================
 
-        let dbExtras=[], cidades=["Heliópolis","Cícero Dantas","Nova Soure","Ribeira do Pombal","Banzaê","Cipó","Fátima","Adustina","Paripiranga","Ribeira do Amparo"];
-        let tempAnexoBase64=null;
-        let tempPdfBase64=null;
-        let lastBotMsgIndex = 0;
-        let donutChart = null; 
-        let comparisonChart = null;
-        let dadosNuvemCache = {}; 
-        let analysisSort = 'data'; 
-        
-        const cityColorMap = {
-            "Heliópolis": "#e74c3c", "Cícero Dantas": "#8e44ad", "Nova Soure": "#3498db", "Ribeira do Pombal": "#f39c12", 
-            "Banzaê": "#16a085", "Cipó": "#27ae60", "Fátima": "#d35400", "Adustina": "#c0392b", 
-            "Paripiranga": "#2980b9", "Ribeira do Amparo": "#8bc34a"
-        };
-        const defaultCityColor = "#95a5a6";
+    let dbExtras=[], cidades=["Heliópolis","Cícero Dantas","Nova Soure","Ribeira do Pombal","Banzaê","Cipó","Fátima","Adustina","Paripiranga","Ribeira do Amparo"];
+    let tempAnexoBase64=null;
+    let tempPdfBase64=null;
+    let lastBotMsgIndex = 0;
+    let donutChart = null; 
+    let comparisonChart = null;
+    let analysisSort = 'data'; 
+    
+    const cityColorMap = {"Heliópolis": "#e74c3c", "Cícero Dantas": "#8e44ad", "Nova Soure": "#3498db", "Ribeira do Pombal": "#f39c12", "Banzaê": "#16a085", "Cipó": "#27ae60", "Fátima": "#d35400", "Adustina": "#c0392b", "Paripiranga": "#2980b9", "Ribeira do Amparo": "#8bc34a"};
+    const defaultCityColor = "#95a5a6";
+    const tabelaValoresPM = {'CEL PM': { he: [113.29, 56.54], vd: [67.94, 81.48] },'TC PM': { he: [103.10, 51.55], vd: [66.13, 79.73] },'MAJ PM': { he: [94.85, 47.43], vd: [65.57, 78.66] },'CAP PM': { he: [78.18, 39.09], vd: [65.40, 78.40] },'TEN PM': { he: [65.77, 32.89], vd: [64.90, 77.69] },'ASP PM': { he: [42.02, 21.01], vd: [45.16, 54.18] },'AL OF PM': { he: [0, 0], vd: [36.19, 43.40] },'ST PM': { he: [41.31, 20.65], vd: [33.83, 40.61] },'SGT PM': { he: [38.47, 19.24], vd: [28.03, 33.83] },'CB PM': { he: [35.39, 17.70], vd: [26.72, 32.29] },'SD PM': { he: [33.35, 16.68], vd: [26.72, 32.29] },'AL SD PM': { he: [0, 0], vd: [26.72, 32.29] },'FUNC CIVIL': { he: [0, 0], vd: [26.72, 32.29] }};
 
-        const tabelaValoresPM = {
-            'CEL PM': { he: [113.29, 56.54], vd: [67.94, 81.48] },
-            'TC PM': { he: [103.10, 51.55], vd: [66.13, 79.73] },
-            'MAJ PM': { he: [94.85, 47.43], vd: [65.57, 78.66] },
-            'CAP PM': { he: [78.18, 39.09], vd: [65.40, 78.40] },
-            'TEN PM': { he: [65.77, 32.89], vd: [64.90, 77.69] },
-            'ASP PM': { he: [42.02, 21.01], vd: [45.16, 54.18] },
-            'AL OF PM': { he: [0, 0], vd: [36.19, 43.40] },
-            'ST PM': { he: [41.31, 20.65], vd: [33.83, 40.61] },
-            'SGT PM': { he: [38.47, 19.24], vd: [28.03, 33.83] },
-            'CB PM': { he: [35.39, 17.70], vd: [26.72, 32.29] },
-            'SD PM': { he: [33.35, 16.68], vd: [26.72, 32.29] },
-            'AL SD PM': { he: [0, 0], vd: [26.72, 32.29] },
-            'FUNC CIVIL': { he: [0, 0], vd: [26.72, 32.29] }
-        };
-
-        window.onload=function(){
-            carregarLocal(); 
-            carregarNuvem(); 
-            setInterval(atualizarHora,1000); atualizarHora();
-            setInterval(botRotinaGestor, 8000); 
-            if(localStorage.getItem('tactical_notepad')) document.getElementById('notepad').value=localStorage.getItem('tactical_notepad');
-            setupGlobalPaste();
-            document.getElementById('m-pdf-escala').addEventListener('change', function(e){
-                if (this.files && this.files[0]) {
-                    const reader = new FileReader();
-                    reader.onload = function(ev) { 
-                        tempPdfBase64 = ev.target.result; 
-                        document.getElementById('btn-remove-pdf').style.display = 'block';
-                    };
-                    reader.readAsDataURL(this.files[0]);
-                }
-            });
-        };
-
-        // --- SISTEMA DE SINCRONIZAÇÃO BLINDADA (SAFE SYNC) ---
-        async function sincronizarDadosSeguro(forcarUpload = false) {
-            const statusDiv = document.getElementById('sync-status');
-            statusDiv.innerHTML = '<i class="fas fa-circle-notch fa-spin"></i> SINCRONIZANDO...';
-            statusDiv.style.color = '#ffc107';
-
-            try {
-                // PASSO 1: BAIXAR DADOS DA NUVEM
-                const res = await fetch(API_URL);
-                if (!res.ok) throw new Error("Erro HTTP: " + res.status);
-                const nuvemRaw = await res.json();
-                let dadosNuvem = [];
-                
-                if (nuvemRaw && nuvemRaw.abonos_extras) {
-                    dadosNuvem = nuvemRaw.abonos_extras;
-                }
-
-                // PASSO 2: MESCLAGEM INTELIGENTE (MERGE)
-                const mapaUnificado = new Map();
-
-                // A. Nuvem primeiro
-                dadosNuvem.forEach(item => {
-                    mapaUnificado.set(String(item.id), item);
-                });
-
-                // B. Local depois (preserva edições recentes offline)
-                dbExtras.forEach(item => {
-                    mapaUnificado.set(String(item.id), item);
-                });
-
-                const listaFinal = Array.from(mapaUnificado.values());
-
-                // PASSO 3: ATUALIZAR A TELA E O LOCALSTORAGE
-                dbExtras = listaFinal;
-                
-                // Sanitização
-                dbExtras.forEach(item => { 
-                    if(!item.periodo) item.periodo = "DIURNO"; 
-                    if(!item.horas) item.horas = 8; 
-                });
-
-                salvarLocal(); 
-                renderTable(); 
-
-                // PASSO 4: ENVIAR DE VOLTA (SÓ SE NECESSÁRIO)
-                if (forcarUpload || dbExtras.length > dadosNuvem.length) {
-                    statusDiv.innerHTML = '<i class="fas fa-arrow-up"></i> SALVANDO...';
-                    
-                    const payload = { abonos_extras: dbExtras };
-                    
-                    await fetch(API_URL, {
-                        method: 'POST',
-                        mode: 'no-cors',
-                        headers: { 'Content-Type': 'application/json' },
-                        body: JSON.stringify(payload)
-                    });
-                    
-                    statusDiv.innerHTML = '<i class="fas fa-check-double"></i> SINCRONIZADO';
-                    statusDiv.style.color = '#8bc34a';
-                } else {
-                    statusDiv.innerHTML = '<i class="fas fa-wifi"></i> CONECTADO';
-                    statusDiv.style.color = '#8bc34a';
-                }
-
-            } catch (erro) {
-                console.error("Erro no Safe Sync:", erro);
-                statusDiv.innerHTML = '<i class="fas fa-exclamation-triangle"></i> OFFLINE';
-                statusDiv.style.color = '#e53e3e';
-            }
-        }
-
-        // Wrappers para compatibilidade
-        function carregarNuvem() { sincronizarDadosSeguro(false); }
-        function salvarNuvem() { sincronizarDadosSeguro(true); }
-
-        function atualizarHora(){ const h=new Date(); const s=h.toLocaleDateString('pt-BR',{weekday:'long',year:'numeric',month:'long',day:'numeric'}); document.getElementById('live-datetime').innerText=s.charAt(0).toUpperCase()+s.slice(1)+", "+h.toLocaleTimeString('pt-BR'); }
-
-        function botRotinaGestor() {
-            const fMes = document.getElementById('filtro-mes').value;
-            const fAno = document.getElementById('filtro-ano').value;
-            let mesRef = fMes || String(new Date().getMonth()+1).padStart(2,'0');
-            let anoRef = (!fAno || fAno === 'all') ? String(new Date().getFullYear()) : fAno;
-            
-            let horasMes = dbExtras.filter(d => d.data.split('-')[1] === mesRef && d.data.split('-')[0] === anoRef)
-                                   .reduce((a,b)=>a+parseFloat(b.horas||0),0);
-            const pendente = dbExtras.filter(x=>x.status!=='PAGO').reduce((a,b)=>a+b.valor,0);
-            
-            let msgs = [
-                `<span class="bot-highlight">STATUS FINANCEIRO:</span> Você tem <span class="bot-alert">${toBRL(pendente)}</span> pendentes.`,
-                `<strong>BIZU TÁTICO:</strong> Mantenha o padrão.`,
-                `<strong>SISTEMA:</strong> Safe Sync Ativado.`
-            ];
-            if(horasMes >= 60) msgs.unshift(`<span style="color:#e53e3e;">🚨 ALERTA:</span> ${horasMes}h atingidas!`);
-            const msgBox = document.getElementById('bot-msg');
-            msgBox.innerHTML = msgs[lastBotMsgIndex % msgs.length];
-            lastBotMsgIndex++;
-        }
-
-        function carregarLocal(){
-            const db=localStorage.getItem('db_extras_v10'); 
-            const c=localStorage.getItem('db_cidades_v10');
-            if(db && JSON.parse(db).length > 0) {
-                dbExtras = JSON.parse(db);
-                dbExtras.forEach(item => { if(!item.periodo) item.periodo = "DIURNO"; if(!item.horas) item.horas = 8; });
-            } 
-            if(c) cidades=JSON.parse(c); 
-            atualizarSelectCidades(); atualizarFiltroAno(); renderTable(); botRotinaGestor();
-        }
-        function salvarLocal(){ localStorage.setItem('db_extras_v10',JSON.stringify(dbExtras)); atualizarFiltroAno(); }
-
-        /* --- UPLOAD LOGIC --- */
-        function triggerFileSelect() { document.getElementById('input-paste-file').click(); }
-        
-        function handleFileSelect(input) {
-            if (input.files && input.files[0]) {
+    window.onload=function(){
+        carregarLocal(); 
+        sincronizar(false); // Carrega dados ao iniciar
+        setInterval(atualizarHora,1000); atualizarHora();
+        setInterval(botRotinaGestor, 8000); 
+        setupGlobalPaste();
+        document.getElementById('m-pdf-escala').addEventListener('change', function(e){
+            if (this.files && this.files[0]) {
                 const reader = new FileReader();
-                reader.onload = function(e) {
-                    tempAnexoBase64 = e.target.result;
-                    const img = document.getElementById('paste-preview-img');
-                    img.src = tempAnexoBase64; img.style.display = 'block';
-                    document.getElementById('btn-remove-img').style.display = 'block';
-                };
-                reader.readAsDataURL(input.files[0]);
+                reader.onload = function(ev) { tempPdfBase64 = ev.target.result; document.getElementById('btn-remove-pdf').style.display = 'block'; };
+                reader.readAsDataURL(this.files[0]);
+            }
+        });
+    };
+
+    // --- NOVA LÓGICA DE SINCRONIZAÇÃO BLINDADA (READ-MODIFY-WRITE) ---
+    async function sincronizar(isSaving = false) {
+        const statusDiv = document.getElementById('sync-status');
+        
+        if(isSaving) {
+            statusDiv.innerHTML = '<i class="fas fa-circle-notch fa-spin"></i> SALVANDO...';
+            statusDiv.style.color = '#ffc107';
+        } else {
+            statusDiv.innerHTML = '<i class="fas fa-circle-notch fa-spin"></i> BAIXANDO...';
+        }
+
+        try {
+            // 1. BAIXAR O BANCO INTEIRO (Para não apagar o Gestor Pro)
+            const res = await fetch(API_URL);
+            const bancoCompleto = await res.json();
+            
+            if(isSaving) {
+                // MODO SALVAR: A verdade está na tela (dbExtras)
+                // Injetamos nossos dados no banco completo baixado
+                bancoCompleto.abonos_extras = dbExtras;
+
+                // Enviamos o banco completo de volta
+                await fetch(API_URL, {
+                    method: 'POST',
+                    mode: 'no-cors',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(bancoCompleto)
+                });
+                
+                statusDiv.innerHTML = '<i class="fas fa-check-double"></i> SALVO';
+                statusDiv.style.color = '#8bc34a';
+
+            } else {
+                // MODO CARREGAR: A verdade está na nuvem
+                if(bancoCompleto && bancoCompleto.abonos_extras) {
+                    dbExtras = bancoCompleto.abonos_extras;
+                    salvarLocal(false); // Salva no cache sem acionar upload
+                    renderTable();
+                }
+                statusDiv.innerHTML = '<i class="fas fa-wifi"></i> CONECTADO';
+                statusDiv.style.color = '#8bc34a';
+            }
+
+        } catch (erro) {
+            console.error("Erro Sync:", erro);
+            statusDiv.innerHTML = '<i class="fas fa-exclamation-triangle"></i> ERRO REDE';
+            statusDiv.style.color = '#e53e3e';
+            // Fallback: se falhar ao salvar, tenta de novo em 5s
+            if(isSaving) setTimeout(() => sincronizar(true), 5000);
+        }
+    }
+
+    function carregarNuvem(force = false) { sincronizar(false); }
+    function salvarNuvem() { sincronizar(true); }
+
+    function atualizarHora(){ const h=new Date(); const s=h.toLocaleDateString('pt-BR',{weekday:'long',year:'numeric',month:'long',day:'numeric'}); document.getElementById('live-datetime').innerText=s.charAt(0).toUpperCase()+s.slice(1)+", "+h.toLocaleTimeString('pt-BR'); }
+
+    function botRotinaGestor() {
+        if(!dbExtras || dbExtras.length === 0) return;
+        const fMes = document.getElementById('filtro-mes').value;
+        const fAno = document.getElementById('filtro-ano').value;
+        let mesRef = fMes || String(new Date().getMonth()+1).padStart(2,'0');
+        let anoRef = (!fAno || fAno === 'all') ? String(new Date().getFullYear()) : fAno;
+        
+        let horasMes = dbExtras.filter(d => d.data.split('-')[1] === mesRef && d.data.split('-')[0] === anoRef).reduce((a,b)=>a+parseFloat(b.horas||0),0);
+        const pendente = dbExtras.filter(x=>x.status!=='PAGO').reduce((a,b)=>a+b.valor,0);
+        
+        let msgs = [`<span class="bot-highlight">STATUS FINANCEIRO:</span> Você tem <span class="bot-alert">${toBRL(pendente)}</span> pendentes.`, `<strong>BIZU TÁTICO:</strong> Mantenha o padrão.`, `<strong>SISTEMA:</strong> Modo Blindado V2.0`];
+        if(horasMes >= 60) msgs.unshift(`<span style="color:#e53e3e;">🚨 ALERTA:</span> ${horasMes}h atingidas!`);
+        const msgBox = document.getElementById('bot-msg');
+        if(msgBox) msgBox.innerHTML = msgs[lastBotMsgIndex % msgs.length];
+        lastBotMsgIndex++;
+    }
+
+    function carregarLocal(){
+        const db=localStorage.getItem('db_extras_v10'); 
+        const c=localStorage.getItem('db_cidades_v10');
+        if(db) dbExtras = JSON.parse(db);
+        if(c) cidades=JSON.parse(c); 
+        atualizarSelectCidades(); atualizarFiltroAno(); renderTable(); 
+    }
+    
+    function salvarLocal(sync = false){ 
+        localStorage.setItem('db_extras_v10',JSON.stringify(dbExtras)); 
+        atualizarFiltroAno(); 
+        if(sync) salvarNuvem(); 
+    }
+
+    /* --- UPLOAD LOGIC --- */
+    function triggerFileSelect() { document.getElementById('input-paste-file').click(); }
+    function handleFileSelect(input) { if (input.files && input.files[0]) { const reader = new FileReader(); reader.onload = function(e) { tempAnexoBase64 = e.target.result; document.getElementById('paste-preview-img').src = tempAnexoBase64; document.getElementById('paste-preview-img').style.display = 'block'; document.getElementById('btn-remove-img').style.display = 'block'; }; reader.readAsDataURL(input.files[0]); } }
+    function setupGlobalPaste() { document.addEventListener('paste', function(e) { if(document.getElementById('modal').style.display !== 'flex') return; const items = (e.clipboardData || e.originalEvent.clipboardData).items; for (let index in items) { const item = items[index]; if (item.kind === 'file' && item.type.startsWith('image/')) { const blob = item.getAsFile(); const reader = new FileReader(); reader.onload = function(event) { tempAnexoBase64 = event.target.result; document.getElementById('paste-preview-img').src = tempAnexoBase64; document.getElementById('paste-preview-img').style.display = 'block'; document.getElementById('btn-remove-img').style.display = 'block'; }; reader.readAsDataURL(blob); } } }); }
+    function removerImagem() { tempAnexoBase64 = null; document.getElementById('paste-preview-img').src = ''; document.getElementById('paste-preview-img').style.display = 'none'; document.getElementById('btn-remove-img').style.display = 'none'; document.getElementById('input-paste-file').value = ''; }
+    function removerPdf() { tempPdfBase64 = null; document.getElementById('m-pdf-escala').value = ''; document.getElementById('btn-remove-pdf').style.display = 'none'; }
+
+    /* --- DEMAIS FUNÇÕES --- */
+    function verificarCidade(s){ if(s.value==='NOVA'){ const n=prompt("Nova cidade:"); if(n&&n.trim()){ cidades.push(n.toUpperCase()); localStorage.setItem('db_cidades_v10',JSON.stringify(cidades)); atualizarSelectCidades(); s.value=n.toUpperCase(); } else s.value=cidades[0]; } }
+    function atualizarSelectCidades(){ const s=document.getElementById('m-cidade'); s.innerHTML=''; cidades.forEach(c=>{ let o=document.createElement('option'); o.value=c; o.text=c; s.add(o); }); let oN=document.createElement('option'); oN.value='NOVA'; oN.text='>> NOVA CIDADE'; oN.style.color='var(--tech-accent)'; s.add(oN); }
+    
+    function atualizarFiltroAno() {
+        let anosDados = [...new Set(dbExtras.map(d => d.data.split('-')[0]))];
+        let anoAtual = String(new Date().getFullYear());
+        if(!anosDados.includes(anoAtual)) anosDados.push(anoAtual);
+        anosDados.sort((a,b) => b - a);
+        const criarOpcoes = (selectorId) => {
+            const sel = document.getElementById(selectorId); if(!sel) return;
+            const valorAtual = sel.value; sel.innerHTML = ''; 
+            let optAll = document.createElement('option'); optAll.value="all"; optAll.text="TODOS OS ANOS"; sel.add(optAll);
+            if(selectorId === 'filtro-ano') { let optCurr = document.createElement('option'); optCurr.value=anoAtual; optCurr.text="ANO ATUAL ("+anoAtual+")"; sel.add(optCurr); }
+            anosDados.forEach(a => { if(a !== anoAtual || selectorId !== 'filtro-ano') { let o = document.createElement('option'); o.value = a; o.text = a; sel.add(o); } });
+            if(valorAtual && (anosDados.includes(valorAtual) || valorAtual === 'all')) sel.value = valorAtual;
+        };
+        criarOpcoes('filtro-ano'); criarOpcoes('an-filtro-ano');
+    }
+
+    function resetFiltros() { document.getElementById('filtro-mes').value=''; document.getElementById('filtro-ano').value='all'; renderTable(); }
+    function triggerUpdateAnalysis() { updateAnalysis(dbExtras); }
+    function getCityColor(nomeCidade) { return cityColorMap[nomeCidade] || defaultCityColor; }
+    function setSort(col) { analysisSort = col; triggerUpdateAnalysis(); }
+
+    function updateAnalysis(fullData) {
+        if(!fullData) return;
+        const fMes = document.getElementById('an-filtro-mes').value; const fAno = document.getElementById('an-filtro-ano').value;
+        let currentYear = String(new Date().getFullYear()); let filteredData = fullData;
+        if (fAno && fAno !== 'all') filteredData = filteredData.filter(d => d.data.split('-')[0] === fAno);
+        else if (!fAno && fMes === "") filteredData = filteredData.filter(d => d.data.split('-')[0] === currentYear);
+        if (fMes && fMes !== 'all') filteredData = filteredData.filter(d => d.data.split('-')[1] === fMes);
+        else if (fMes === "" && (!fAno || fAno !== 'all')) { const mesAtual = String(new Date().getMonth()+1).padStart(2,'0'); filteredData = filteredData.filter(d => d.data.split('-')[1] === mesAtual); }
+
+        if(analysisSort === 'data') filteredData.sort((a,b) => new Date(b.data) - new Date(a.data));
+        if(analysisSort === 'valor') filteredData.sort((a,b) => b.valor - a.valor);
+        if(analysisSort === 'cidade') filteredData.sort((a,b) => a.cidade.localeCompare(b.cidade));
+
+        const reportBody = document.getElementById('report-tbody'); reportBody.innerHTML = '';
+        filteredData.forEach(d => {
+            let turnoClass = d.periodo === 'DIURNO' ? 'turn-day' : 'turn-night';
+            reportBody.innerHTML += `<tr><td>${d.data.split('-').reverse().join('/')}</td><td><span class="city-badge" style="background:${getCityColor(d.cidade)}">${d.cidade}</span></td><td><span class="turn-badge ${turnoClass}">${d.periodo||'N/A'}</span></td><td style="text-align:center; font-weight:bold;">${d.horas}h</td><td>${d.tipo}</td><td style="color:#8bc34a;">${toBRL(d.valor)}</td></tr>`;
+        });
+
+        let naturezas = {}; let totalHorasPeriodo = 0;
+        filteredData.forEach(d => { let nat = d.natureza || 'OUTROS'; let h = parseFloat(d.horas || 0); if(!naturezas[nat]) naturezas[nat] = 0; naturezas[nat] += h; totalHorasPeriodo += h; });
+        document.getElementById('dct-total').innerText = totalHorasPeriodo;
+        let percent = (totalHorasPeriodo / 60) * 100; if(percent > 100) percent = 100;
+        const progFill = document.getElementById('prog-bar-fill');
+        progFill.style.width = percent + '%';
+        document.getElementById('prog-text').innerText = `${totalHorasPeriodo}h / 60h`;
+        document.getElementById('prog-text-label').innerText = percent.toFixed(1) + '%';
+        if(percent < 50) progFill.style.background = 'linear-gradient(90deg, #556B2F, #8bc34a)';
+        else if(percent < 90) progFill.style.background = 'linear-gradient(90deg, #f57f17, #ffc107)';
+        else progFill.style.background = 'linear-gradient(90deg, #c62828, #e53e3e)';
+
+        const ctxDonut = document.getElementById('doughnutChart').getContext('2d');
+        if(donutChart) donutChart.destroy();
+        donutChart = new Chart(ctxDonut, { type: 'doughnut', data: { labels: Object.keys(naturezas), datasets: [{ data: Object.values(naturezas), backgroundColor: ['#8bc34a', '#03a9f4', '#ffc107', '#e91e63', '#9c27b0'], borderColor: '#16181b', borderWidth: 2 }] }, options: { responsive: true, maintainAspectRatio: false, cutout: '70%', plugins: { legend: { position: 'bottom', labels: { color: '#ccc', font: {family: 'Roboto', size:10} } } } } });
+
+        let yearData = fullData; let chartAno = fAno && fAno !== 'all' ? fAno : currentYear;
+        yearData = fullData.filter(d => d.data.split('-')[0] === chartAno);
+        let extraHours = new Array(12).fill(0); let abonoHours = new Array(12).fill(0);
+        yearData.forEach(d => { let mIndex = parseInt(d.data.split('-')[1]) - 1; let h = parseFloat(d.horas || 0); if(d.natureza === 'ABONO') abonoHours[mIndex] += h; else extraHours[mIndex] += h; });
+        const ctxComp = document.getElementById('comparisonChart').getContext('2d');
+        if(comparisonChart) comparisonChart.destroy();
+        comparisonChart = new Chart(ctxComp, { type: 'bar', data: { labels: ['Jan','Fev','Mar','Abr','Mai','Jun','Jul','Ago','Set','Out','Nov','Dez'], datasets: [ { label: 'Extras (h)', data: extraHours, backgroundColor: '#8bc34a', borderRadius: 4 }, { label: 'Abonos (h)', data: abonoHours, backgroundColor: '#e53e3e', borderRadius: 4 } ] }, options: { responsive: true, maintainAspectRatio: false, scales: { y: { beginAtZero: true, grid: { color: '#333' }, ticks: { color: '#999' } }, x: { grid: { display: false }, ticks: { color: '#ccc' } } }, plugins: { legend: { labels: { color: '#ccc' } } } } });
+    }
+
+    function abrirModal(id=null){
+        removerImagem(); removerPdf();
+        document.getElementById('edit-id').value = '';
+        document.getElementById('m-valor').value = ''; document.getElementById('m-obs').value = ''; document.getElementById('m-horas').value = '8'; document.getElementById('m-periodo').value = 'DIURNO'; document.getElementById('m-tipo').value = 'H.E'; document.getElementById('m-natureza').value = 'VOLUNTÁRIO'; document.getElementById('m-status').value = 'A RECEBER';
+        const hoje = new Date(); let anoSug = hoje.getFullYear(); let mesSug = String(hoje.getMonth()+1).padStart(2,'0'); let diaSug = String(hoje.getDate()).padStart(2,'0'); document.getElementById('m-data').value = `${anoSug}-${mesSug}-${diaSug}`;
+        document.getElementById('modal').style.display='flex'; 
+        if(id){
+            document.getElementById('edit-id').value = id;
+            const i = dbExtras.find(x => x.id == id);
+            if(i) {
+                document.getElementById('m-cidade').value = i.cidade;
+                document.getElementById('m-data').value = i.data; document.getElementById('m-valor').value = toBRL(i.valor); document.getElementById('m-tipo').value = i.tipo || 'H.E'; document.getElementById('m-natureza').value = i.natureza || 'VOLUNTÁRIO'; document.getElementById('m-horas').value = i.horas; document.getElementById('m-status').value = i.status; document.getElementById('m-obs').value = i.obs; document.getElementById('m-periodo').value = i.periodo || 'DIURNO';
+                if(i.anexo){ tempAnexoBase64=i.anexo; document.getElementById('paste-preview-img').src=i.anexo; document.getElementById('paste-preview-img').style.display='block'; document.getElementById('btn-remove-img').style.display = 'block'; }
+                if(i.pdfEscala) { tempPdfBase64 = i.pdfEscala; document.getElementById('btn-remove-pdf').style.display = 'block'; }
             }
         }
+    }
+    function fecharModal(){ document.getElementById('modal').style.display='none'; }
+    
+    function salvarRegistro(){
+        const id=document.getElementById('edit-id').value;
+        const obj={ id:id?parseInt(id):Date.now(), cidade:document.getElementById('m-cidade').value, data:document.getElementById('m-data').value, valor:lerMoeda(document.getElementById('m-valor').value), tipo:document.getElementById('m-tipo').value, natureza:document.getElementById('m-natureza').value, horas:document.getElementById('m-horas').value, status:document.getElementById('m-status').value, obs:document.getElementById('m-obs').value, periodo:document.getElementById('m-periodo').value, anexo:tempAnexoBase64, pdfEscala: tempPdfBase64 };
+        if(id) dbExtras[dbExtras.findIndex(x=>x.id==id)]=obj; else dbExtras.push(obj);
+        salvarLocal(true); fecharModal(); renderTable(); 
+    }
 
-        function setupGlobalPaste() {
-            document.addEventListener('paste', function(e) {
-                if(document.getElementById('modal').style.display !== 'flex') return;
-                const items = (e.clipboardData || e.originalEvent.clipboardData).items;
-                for (let index in items) {
-                    const item = items[index];
-                    if (item.kind === 'file' && item.type.startsWith('image/')) {
-                        const blob = item.getAsFile();
-                        const reader = new FileReader();
-                        reader.onload = function(event) {
-                            tempAnexoBase64 = event.target.result;
-                            const img = document.getElementById('paste-preview-img');
-                            img.src = tempAnexoBase64; img.style.display = 'block';
-                            document.getElementById('btn-remove-img').style.display = 'block';
-                        };
-                        reader.readAsDataURL(blob);
-                    }
-                }
-            });
+    function marcarComoPago(id) {
+        const index = dbExtras.findIndex(x => x.id == id);
+        if (index > -1 && confirm("Confirmar recebimento deste valor?")) {
+            dbExtras[index].status = 'PAGO'; salvarLocal(true); renderTable();
         }
+    }
 
-        function removerImagem() {
-            tempAnexoBase64 = null;
-            document.getElementById('paste-preview-img').src = '';
-            document.getElementById('paste-preview-img').style.display = 'none';
-            document.getElementById('btn-remove-img').style.display = 'none';
-            document.getElementById('input-paste-file').value = ''; 
-        }
-
-        function removerPdf() {
-            tempPdfBase64 = null;
-            document.getElementById('m-pdf-escala').value = '';
-            document.getElementById('btn-remove-pdf').style.display = 'none';
-        }
-
-        /* --- DEMAIS FUNÇÕES --- */
-        function verificarCidade(s){ 
-            if(s.value==='NOVA'){ 
-                const n=prompt("Nova cidade:"); 
-                if(n&&n.trim()){ 
-                    cidades.push(n.toUpperCase()); localStorage.setItem('db_cidades_v10',JSON.stringify(cidades)); 
-                    atualizarSelectCidades(); s.value=n.toUpperCase(); 
-                } else s.value=cidades[0]; 
-            } 
-        }
+    function renderTable(){
+        const tb=document.getElementById('tbody-extras'); tb.innerHTML='';
+        const fMes = document.getElementById('filtro-mes').value; const fAno = document.getElementById('filtro-ano').value;
+        let lista = dbExtras.sort((a,b)=>new Date(b.data)-new Date(a.data));
+        if(fMes) lista = lista.filter(d => d.data.split('-')[1] === fMes);
+        if(fAno && fAno !== 'all') lista = lista.filter(d => d.data.split('-')[0] === fAno);
         
-        function atualizarSelectCidades(){ 
-            const s=document.getElementById('m-cidade'); s.innerHTML=''; 
-            cidades.forEach(c=>{ let o=document.createElement('option'); o.value=c; o.text=c; s.add(o); }); 
-            let oN=document.createElement('option'); oN.value='NOVA'; oN.text='>> NOVA CIDADE'; oN.style.color='var(--tech-accent)'; s.add(oN); 
-        }
-        
-        function atualizarFiltroAno() {
-            let anosDados = [...new Set(dbExtras.map(d => d.data.split('-')[0]))];
-            let anoAtual = String(new Date().getFullYear());
-            if(!anosDados.includes(anoAtual)) anosDados.push(anoAtual);
-            anosDados.sort((a,b) => b - a);
+        let t=0,pg=0,pd=0, th=0;
+        lista.forEach(d=>{
+            t+=d.valor; th+=parseFloat(d.horas || 0);
+            if(d.status==='PAGO') pg+=d.valor; else pd+=d.valor;
+            let ax = d.anexo ? `<i class="fas fa-image" style="color:var(--tech-accent);cursor:pointer;margin-right:5px;" onclick="verImagem('${d.anexo}')" title="Ver Print"></i>` : '';
+            let pdfIcon = d.pdfEscala ? `<i class="fas fa-file-pdf" style="color:#e74c3c;cursor:pointer;margin-right:5px;" onclick="baixarPDF('${d.pdfEscala}', '${d.data}_${d.cidade}')" title="Baixar Escala"></i>` : '';
+            let btnCheck = d.status === 'A RECEBER' ? `<button class="btn-check" style="padding:5px 10px; margin-right:5px;" onclick="marcarComoPago(${d.id})"><i class="fas fa-check"></i></button>` : '';
+            tb.innerHTML+=`<tr><td>${d.data.split('-').reverse().join('/')}</td><td><span class="city-badge" style="background:${getCityColor(d.cidade)}">${d.cidade}</span></td><td>${d.tipo} <small>(${d.natureza||'-'})</small> <br><small style="color:#666">${d.periodo||''}</small></td><td style="text-align:center;">${d.horas}h</td><td><span class="badge ${d.status==='PAGO'?'badge-pago':'badge-pendente'}">${d.status}</span></td><td style="color:var(--tech-accent);font-weight:bold">${toBRL(d.valor)}</td><td>${pdfIcon} ${ax} <small>${d.obs.substring(0,15)}</small></td><td>${btnCheck}<button class="btn-primary" style="padding:5px 10px" onclick="abrirModal(${d.id})"><i class="fas fa-pen"></i></button> <button class="btn-del" style="padding:5px 10px" onclick="excluir(${d.id})"><i class="fas fa-trash"></i></button></td></tr>`;
+        });
+        document.getElementById('dash-total').innerText=toBRL(t); document.getElementById('dash-pago').innerText=toBRL(pg); document.getElementById('dash-pendente').innerText=toBRL(pd); document.getElementById('dash-horas').innerText=th + 'h'; 
+        updateAnalysis(dbExtras); botRotinaGestor();
+    }
+    
+    function excluir(id){ 
+        if(confirm("EXCLUIR REGISTRO? A ação será sincronizada imediatamente.")){ 
+            // 1. Remove LOCALMENTE
+            dbExtras = dbExtras.filter(x => x.id != id); 
+            // 2. Salva Localmente
+            salvarLocal(false);
+            renderTable(); 
+            // 3. Força Upload Imediato (A verdade local sobrescreve a nuvem)
+            sincronizar(true);
+        } 
+    }
 
-            const criarOpcoes = (selectorId) => {
-                const sel = document.getElementById(selectorId);
-                const valorAtual = sel.value; sel.innerHTML = ''; 
-                let optAll = document.createElement('option'); optAll.value="all"; optAll.text="TODOS OS ANOS"; sel.add(optAll);
-                if(selectorId === 'filtro-ano') {
-                   let optCurr = document.createElement('option'); optCurr.value=anoAtual; optCurr.text="ANO ATUAL ("+anoAtual+")"; sel.add(optCurr);
-                }
-                anosDados.forEach(a => { if(a !== anoAtual || selectorId !== 'filtro-ano') { let o = document.createElement('option'); o.value = a; o.text = a; sel.add(o); } });
-                if(valorAtual && (anosDados.includes(valorAtual) || valorAtual === 'all')) sel.value = valorAtual;
-            };
-            criarOpcoes('filtro-ano'); criarOpcoes('an-filtro-ano');
-        }
+    function verImagem(s){ document.getElementById('img-full').src=s; document.getElementById('img-viewer').style.display='flex'; }
+    function baixarPDF(base64, nome) { const link = document.createElement('a'); link.href = base64; link.download = `ESCALA_${nome}.pdf`; link.click(); }
+    function limparBase(){ if(confirm("RESETAR TUDO? ISSO APAGARÁ A NUVEM!")){ dbExtras = []; salvarLocal(true); location.reload(); } }
+    
+    function calcularHorasOficial() {
+        const posto = document.getElementById('he-posto').value;
+        const heNormal = parseFloat(document.getElementById('he-normal').value) || 0; const heNoturna = parseFloat(document.getElementById('he-noturna').value) || 0; const vdNormal = parseFloat(document.getElementById('vd-normal').value) || 0; const vdNoturno = parseFloat(document.getElementById('vd-noturno').value) || 0;
+        if (!posto) { alert('Selecione seu posto/graduação.'); return; }
+        const valores = tabelaValoresPM[posto]; const totalHENormal = heNormal * valores.he[0]; const totalHENoturna = heNoturna * (valores.he[0] + valores.he[1]); const totalVDNormal = vdNormal * valores.vd[0]; const totalVDNoturno = vdNoturno * valores.vd[1]; const totalHE = totalHENormal + totalHENoturna; const totalVD = totalVDNormal + totalVDNoturno; const totalBruto = totalHE + totalVD; const irrfHE = totalHE * 0.275; const totalLiquido = totalBruto - irrfHE;
+        document.getElementById('res-he-normal').innerText = toBRL(totalHENormal); document.getElementById('res-he-noturna').innerText = toBRL(totalHENoturna); document.getElementById('res-vd-normal').innerText = toBRL(totalVDNormal); document.getElementById('res-vd-noturno').innerText = toBRL(totalVDNoturno); document.getElementById('res-irrf').innerText = "- " + toBRL(irrfHE); document.getElementById('res-bruto').innerText = toBRL(totalBruto); document.getElementById('res-liquido').innerText = toBRL(totalLiquido); document.getElementById('he-resultado').style.display = 'block';
+    }
+    function calcInput(v) { document.getElementById('calc-display').value += v; }
+    function calcClear() { document.getElementById('calc-display').value = ''; }
+    function calcResult() { try { document.getElementById('calc-display').value = eval(document.getElementById('calc-display').value); } catch(e) { document.getElementById('calc-display').value = 'ERRO'; } }
 
-        function resetFiltros() { document.getElementById('filtro-mes').value=''; document.getElementById('filtro-ano').value='all'; renderTable(); }
-        function triggerUpdateAnalysis() { updateAnalysis(dbExtras); }
-        function getCityColor(nomeCidade) { return cityColorMap[nomeCidade] || defaultCityColor; }
-        function setSort(col) { analysisSort = col; triggerUpdateAnalysis(); }
-
-        function updateAnalysis(fullData) {
-            const fMes = document.getElementById('an-filtro-mes').value; const fAno = document.getElementById('an-filtro-ano').value;
-            let currentYear = String(new Date().getFullYear()); let filteredData = fullData;
-            
-            if (fAno && fAno !== 'all') filteredData = filteredData.filter(d => d.data.split('-')[0] === fAno);
-            else if (!fAno && fMes === "") filteredData = filteredData.filter(d => d.data.split('-')[0] === currentYear);
-            
-            if (fMes && fMes !== 'all') filteredData = filteredData.filter(d => d.data.split('-')[1] === fMes);
-            else if (fMes === "" && (!fAno || fAno !== 'all')) { const mesAtual = String(new Date().getMonth()+1).padStart(2,'0'); filteredData = filteredData.filter(d => d.data.split('-')[1] === mesAtual); }
-
-            if(analysisSort === 'data') filteredData.sort((a,b) => new Date(b.data) - new Date(a.data));
-            if(analysisSort === 'valor') filteredData.sort((a,b) => b.valor - a.valor);
-            if(analysisSort === 'cidade') filteredData.sort((a,b) => a.cidade.localeCompare(b.cidade));
-
-            const reportBody = document.getElementById('report-tbody'); reportBody.innerHTML = '';
-            filteredData.forEach(d => {
-                let turnoClass = d.periodo === 'DIURNO' ? 'turn-day' : 'turn-night';
-                let turnoLabel = d.periodo || 'N/A';
-                reportBody.innerHTML += `<tr><td>${d.data.split('-').reverse().join('/')}</td><td><span class="city-badge" style="background:${getCityColor(d.cidade)}">${d.cidade}</span></td><td><span class="turn-badge ${turnoClass}">${turnoLabel}</span></td><td style="text-align:center; font-weight:bold;">${d.horas}h</td><td>${d.tipo}</td><td style="color:#8bc34a;">${toBRL(d.valor)}</td></tr>`;
-            });
-
-            let naturezas = {}; let totalHorasPeriodo = 0;
-            filteredData.forEach(d => { let nat = d.natureza || 'OUTROS'; let h = parseFloat(d.horas || 0); if(!naturezas[nat]) naturezas[nat] = 0; naturezas[nat] += h; totalHorasPeriodo += h; });
-            document.getElementById('dct-total').innerText = totalHorasPeriodo;
-            let percent = (totalHorasPeriodo / 60) * 100; if(percent > 100) percent = 100;
-            const progFill = document.getElementById('prog-bar-fill');
-            progFill.style.width = percent + '%';
-            document.getElementById('prog-text').innerText = `${totalHorasPeriodo}h / 60h`;
-            document.getElementById('prog-text-label').innerText = percent.toFixed(1) + '%';
-            if(percent < 50) progFill.style.background = 'linear-gradient(90deg, #556B2F, #8bc34a)';
-            else if(percent < 90) progFill.style.background = 'linear-gradient(90deg, #f57f17, #ffc107)';
-            else progFill.style.background = 'linear-gradient(90deg, #c62828, #e53e3e)';
-
-            const ctxDonut = document.getElementById('doughnutChart').getContext('2d');
-            if(donutChart) donutChart.destroy();
-            donutChart = new Chart(ctxDonut, { type: 'doughnut', data: { labels: Object.keys(naturezas), datasets: [{ data: Object.values(naturezas), backgroundColor: ['#8bc34a', '#03a9f4', '#ffc107', '#e91e63', '#9c27b0'], borderColor: '#16181b', borderWidth: 2 }] }, options: { responsive: true, maintainAspectRatio: false, cutout: '70%', plugins: { legend: { position: 'bottom', labels: { color: '#ccc', font: {family: 'Roboto', size:10} } } } } });
-
-            let yearData = fullData; let chartAno = fAno && fAno !== 'all' ? fAno : currentYear;
-            yearData = fullData.filter(d => d.data.split('-')[0] === chartAno);
-            let extraHours = new Array(12).fill(0); let abonoHours = new Array(12).fill(0);
-            yearData.forEach(d => { let mIndex = parseInt(d.data.split('-')[1]) - 1; let h = parseFloat(d.horas || 0); if(d.natureza === 'ABONO') abonoHours[mIndex] += h; else extraHours[mIndex] += h; });
-            const ctxComp = document.getElementById('comparisonChart').getContext('2d');
-            if(comparisonChart) comparisonChart.destroy();
-            comparisonChart = new Chart(ctxComp, { type: 'bar', data: { labels: ['Jan','Fev','Mar','Abr','Mai','Jun','Jul','Ago','Set','Out','Nov','Dez'], datasets: [ { label: 'Extras (h)', data: extraHours, backgroundColor: '#8bc34a', borderRadius: 4 }, { label: 'Abonos (h)', data: abonoHours, backgroundColor: '#e53e3e', borderRadius: 4 } ] }, options: { responsive: true, maintainAspectRatio: false, scales: { y: { beginAtZero: true, grid: { color: '#333' }, ticks: { color: '#999' } }, x: { grid: { display: false }, ticks: { color: '#ccc' } } }, plugins: { legend: { labels: { color: '#ccc' } } } } });
-        }
-
-        function abrirModal(id=null){
-            removerImagem(); removerPdf();
-            document.getElementById('edit-id').value = '';
-            document.getElementById('m-valor').value = ''; document.getElementById('m-obs').value = ''; document.getElementById('m-horas').value = '8'; document.getElementById('m-periodo').value = 'DIURNO'; document.getElementById('m-tipo').value = 'H.E'; document.getElementById('m-natureza').value = 'VOLUNTÁRIO'; document.getElementById('m-status').value = 'A RECEBER';
-            const hoje = new Date(); let anoSug = hoje.getFullYear(); let mesSug = String(hoje.getMonth()+1).padStart(2,'0'); let diaSug = String(hoje.getDate()).padStart(2,'0'); document.getElementById('m-data').value = `${anoSug}-${mesSug}-${diaSug}`;
-
-            document.getElementById('modal').style.display='flex'; 
-
-            if(id){
-                document.getElementById('edit-id').value = id;
-                const i = dbExtras.find(x => x.id == id);
-                if(i) {
-                    document.getElementById('m-cidade').value = i.cidade; if(!cidades.includes(i.cidade)){ let o=document.createElement('option'); o.value=i.cidade; o.text=i.cidade; document.getElementById('m-cidade').add(o,0); document.getElementById('m-cidade').value=i.cidade; }
-                    document.getElementById('m-data').value = i.data; document.getElementById('m-valor').value = toBRL(i.valor); document.getElementById('m-tipo').value = i.tipo || 'H.E'; document.getElementById('m-natureza').value = i.natureza || 'VOLUNTÁRIO'; document.getElementById('m-horas').value = i.horas; document.getElementById('m-status').value = i.status; document.getElementById('m-obs').value = i.obs; document.getElementById('m-periodo').value = i.periodo || 'DIURNO';
-                    
-                    if(i.anexo){ 
-                        tempAnexoBase64=i.anexo; 
-                        document.getElementById('paste-preview-img').src=i.anexo; document.getElementById('paste-preview-img').style.display='block'; 
-                        document.getElementById('btn-remove-img').style.display = 'block';
-                    }
-                    if(i.pdfEscala) { 
-                        tempPdfBase64 = i.pdfEscala; 
-                        document.getElementById('btn-remove-pdf').style.display = 'block';
-                    }
-                }
-            }
-        }
-        function fecharModal(){ document.getElementById('modal').style.display='none'; }
-        
-        function salvarRegistro(){
-            const id=document.getElementById('edit-id').value;
-            const obj={ id:id?parseInt(id):Date.now(), cidade:document.getElementById('m-cidade').value, data:document.getElementById('m-data').value, valor:lerMoeda(document.getElementById('m-valor').value), tipo:document.getElementById('m-tipo').value, natureza:document.getElementById('m-natureza').value, horas:document.getElementById('m-horas').value, status:document.getElementById('m-status').value, obs:document.getElementById('m-obs').value, periodo:document.getElementById('m-periodo').value, anexo:tempAnexoBase64, pdfEscala: tempPdfBase64 };
-            if(id) dbExtras[dbExtras.findIndex(x=>x.id==id)]=obj; else dbExtras.push(obj);
-            salvarLocal(); fecharModal(); renderTable(); salvarNuvem(); 
-        }
-
-        function marcarComoPago(id) {
-            const index = dbExtras.findIndex(x => x.id == id);
-            if (index > -1 && confirm("Confirmar recebimento deste valor?")) {
-                dbExtras[index].status = 'PAGO'; salvarLocal(); renderTable(); salvarNuvem();
-            }
-        }
-
-        function renderTable(){
-            const tb=document.getElementById('tbody-extras'); tb.innerHTML='';
-            const fMes = document.getElementById('filtro-mes').value; const fAno = document.getElementById('filtro-ano').value;
-            let lista = dbExtras.sort((a,b)=>new Date(b.data)-new Date(a.data));
-            if(fMes) lista = lista.filter(d => d.data.split('-')[1] === fMes);
-            if(fAno && fAno !== 'all') lista = lista.filter(d => d.data.split('-')[0] === fAno);
-            
-            let t=0,pg=0,pd=0, th=0;
-            lista.forEach(d=>{
-                t+=d.valor; th+=parseFloat(d.horas || 0);
-                if(d.status==='PAGO') pg+=d.valor; else pd+=d.valor;
-                let ax = d.anexo ? `<i class="fas fa-image" style="color:var(--tech-accent);cursor:pointer;margin-right:5px;" onclick="verImagem('${d.anexo}')" title="Ver Print"></i>` : '';
-                let pdfIcon = d.pdfEscala ? `<i class="fas fa-file-pdf" style="color:#e74c3c;cursor:pointer;margin-right:5px;" onclick="baixarPDF('${d.pdfEscala}', '${d.data}_${d.cidade}')" title="Baixar Escala"></i>` : '';
-                let natureza = d.natureza ? `<small style="color:#888">(${d.natureza})</small>` : '';
-                let periodoLabel = d.periodo ? `<br><small style="color:#aaa; font-size:9px;">${d.periodo}</small>` : '';
-                let btnCheck = d.status === 'A RECEBER' ? `<button class="btn-check" style="padding:5px 10px; margin-right:5px;" onclick="marcarComoPago(${d.id})" title="Confirmar Recebimento"><i class="fas fa-check"></i></button>` : '';
-                let cityColor = getCityColor(d.cidade);
-                tb.innerHTML+=`<tr><td>${d.data.split('-').reverse().join('/')}</td><td><span class="city-badge" style="background:${cityColor}">${d.cidade}</span></td><td>${d.tipo} ${natureza} ${periodoLabel}</td><td style="text-align:center; font-weight:bold;">${d.horas}h</td><td><span class="badge ${d.status==='PAGO'?'badge-pago':'badge-pendente'}">${d.status}</span></td><td style="color:var(--tech-accent);font-weight:bold">${toBRL(d.valor)}</td><td>${pdfIcon} ${ax} <small>${d.obs.substring(0,15)}</small></td><td>${btnCheck}<button class="btn-primary" style="padding:5px 10px" onclick="abrirModal(${d.id})"><i class="fas fa-pen"></i></button> <button class="btn-del" style="padding:5px 10px" onclick="excluir(${d.id})"><i class="fas fa-trash"></i></button></td></tr>`;
-            });
-            document.getElementById('dash-total').innerText=toBRL(t); document.getElementById('dash-pago').innerText=toBRL(pg); document.getElementById('dash-pendente').innerText=toBRL(pd); document.getElementById('dash-horas').innerText=th + 'h'; 
-            updateAnalysis(dbExtras); botRotinaGestor();
-        }
-        
-        function excluir(id){ if(confirm("Excluir?")){ dbExtras=dbExtras.filter(x=>x.id!=id); salvarLocal(); renderTable(); salvarNuvem(); } }
-        function verImagem(s){ document.getElementById('img-full').src=s; document.getElementById('img-viewer').style.display='flex'; }
-        function baixarPDF(base64, nome) { const link = document.createElement('a'); link.href = base64; link.download = `ESCALA_${nome}.pdf`; link.click(); }
-        function limparBase(){ if(confirm("RESETAR TUDO?")){ localStorage.removeItem('db_extras_v10'); dbExtras = []; salvarNuvem(); location.reload(); } }
-        
-        function calcularHorasOficial() {
-            const posto = document.getElementById('he-posto').value;
-            const heNormal = parseFloat(document.getElementById('he-normal').value) || 0; const heNoturna = parseFloat(document.getElementById('he-noturna').value) || 0; const vdNormal = parseFloat(document.getElementById('vd-normal').value) || 0; const vdNoturno = parseFloat(document.getElementById('vd-noturno').value) || 0;
-            if (!posto) { alert('Selecione seu posto/graduação.'); return; }
-            const valores = tabelaValoresPM[posto]; const totalHENormal = heNormal * valores.he[0]; const totalHENoturna = heNoturna * (valores.he[0] + valores.he[1]); const totalVDNormal = vdNormal * valores.vd[0]; const totalVDNoturno = vdNoturno * valores.vd[1]; const totalHE = totalHENormal + totalHENoturna; const totalVD = totalVDNormal + totalVDNoturno; const totalBruto = totalHE + totalVD; const irrfHE = totalHE * 0.275; const totalLiquido = totalBruto - irrfHE;
-            document.getElementById('res-he-normal').innerText = toBRL(totalHENormal); document.getElementById('res-he-noturna').innerText = toBRL(totalHENoturna); document.getElementById('res-vd-normal').innerText = toBRL(totalVDNormal); document.getElementById('res-vd-noturno').innerText = toBRL(totalVDNoturno); document.getElementById('res-irrf').innerText = "- " + toBRL(irrfHE); document.getElementById('res-bruto').innerText = toBRL(totalBruto); document.getElementById('res-liquido').innerText = toBRL(totalLiquido); document.getElementById('he-resultado').style.display = 'block';
-        }
-        function calcInput(v) { document.getElementById('calc-display').value += v; }
-        function calcClear() { document.getElementById('calc-display').value = ''; }
-        function calcResult() { try { document.getElementById('calc-display').value = eval(document.getElementById('calc-display').value); } catch(e) { document.getElementById('calc-display').value = 'ERRO'; } }
-
-        function setDocDate() { const h=new Date(); const m=["Janeiro","Fevereiro","Março","Abril","Maio","Junho","Julho","Agosto","Setembro","Outubro","Novembro","Dezembro"]; document.querySelectorAll('.doc-dia-hoje').forEach(e=>e.innerText=h.getDate()); document.querySelectorAll('.doc-mes-hoje').forEach(e=>e.innerText=m[h.getMonth()]); document.querySelectorAll('.doc-ano-hoje').forEach(e=>e.innerText=h.getFullYear()); }
-        function gerarAbono() { document.getElementById('doc-a-nome').innerText = document.getElementById('a-nome').value.toUpperCase(); document.getElementById('doc-a-mat').innerText = document.getElementById('a-mat').value; document.getElementById('doc-a-servico').innerText = document.getElementById('a-servico').value.toUpperCase(); document.getElementById('doc-a-data').innerText = document.getElementById('a-data').value.split('-').reverse().join('/'); document.getElementById('doc-a-h1').innerText = document.getElementById('a-h1').value; document.getElementById('doc-a-h2').innerText = document.getElementById('a-h2').value; document.getElementById('doc-a-substituto').innerText = document.getElementById('a-substituto').value.toUpperCase(); document.getElementById('doc-a-mat-sub').innerText = document.getElementById('a-mat-sub').value; ['part','est','doenca','outro'].forEach(k=>document.getElementById('chk-a-'+k).innerText=''); document.getElementById('chk-a-'+document.getElementById('a-motivo').value).innerText='X'; setDocDate(); document.getElementById('view-abono').classList.add('visible'); }
-        function gerarPermuta() { document.getElementById('doc-p-nome').innerText = document.getElementById('p-nome').value.toUpperCase(); document.getElementById('doc-p-mat').innerText = document.getElementById('p-mat').value; document.getElementById('doc-p-servico1').innerText = document.getElementById('p-servico1').value.toUpperCase(); document.getElementById('doc-p-data1').innerText = document.getElementById('p-data1').value.split('-').reverse().join('/'); document.getElementById('doc-p-h1a').innerText = document.getElementById('p-h1a').value; document.getElementById('doc-p-h1b').innerText = document.getElementById('p-h1b').value; document.getElementById('doc-p-substituto').innerText = document.getElementById('p-substituto').value.toUpperCase(); document.getElementById('doc-p-mat-sub').innerText = document.getElementById('p-mat-sub').value; document.getElementById('doc-p-servico2').innerText = document.getElementById('p-servico2').value.toUpperCase(); document.getElementById('doc-p-data2').innerText = document.getElementById('p-data2').value.split('-').reverse().join('/'); document.getElementById('doc-p-h2a').innerText = document.getElementById('p-h2a').value; document.getElementById('doc-p-h2b').innerText = document.getElementById('p-h2b').value; setDocDate(); document.getElementById('view-permuta').classList.add('visible'); }
-        function nav(id,btn){ document.querySelectorAll('.content').forEach(c=>c.classList.remove('active')); document.querySelectorAll('.tab-btn').forEach(b=>b.classList.remove('active')); document.getElementById(id).classList.add('active'); btn.classList.add('active'); }
-        function salvarNotas(){ localStorage.setItem('tactical_notepad',document.getElementById('notepad').value); }
-        function exportarCSV(){ let csv="DATA;CIDADE;TURNO;TIPO;NATUREZA;HORAS;VALOR;STATUS;OBS\n"; dbExtras.forEach(d=>{ csv+=`${d.data};${d.cidade};${d.periodo||''};${d.tipo};${d.natureza||''};${d.horas};${d.valor.toFixed(2).replace('.',',')};${d.status};${d.obs}\n` }); let link=document.createElement('a'); link.href='data:text/csv;charset=utf-8,'+encodeURI(csv); link.download='EXTRAS.csv'; link.click(); }
-        function toBRL(v){ return v.toLocaleString('pt-BR',{style:'currency',currency:'BRL'}); }
-        function formatarMoeda(e){ let v=e.value.replace(/\D/g,''); v=(v/100).toFixed(2)+''; v=v.replace('.',',').replace(/(\d)(?=(\d{3})+(?!\d))/g,'$1.'); e.value='R$ '+v; }
-        function lerMoeda(v){ return parseFloat(v.replace('R$','').trim().replaceAll('.','').replace(',','.'))||0; }
+    function setDocDate() { const h=new Date(); const m=["Janeiro","Fevereiro","Março","Abril","Maio","Junho","Julho","Agosto","Setembro","Outubro","Novembro","Dezembro"]; document.querySelectorAll('.doc-dia-hoje').forEach(e=>e.innerText=h.getDate()); document.querySelectorAll('.doc-mes-hoje').forEach(e=>e.innerText=m[h.getMonth()]); document.querySelectorAll('.doc-ano-hoje').forEach(e=>e.innerText=h.getFullYear()); }
+    function gerarAbono() { document.getElementById('doc-a-nome').innerText = document.getElementById('a-nome').value.toUpperCase(); document.getElementById('doc-a-mat').innerText = document.getElementById('a-mat').value; document.getElementById('doc-a-servico').innerText = document.getElementById('a-servico').value.toUpperCase(); document.getElementById('doc-a-data').innerText = document.getElementById('a-data').value.split('-').reverse().join('/'); document.getElementById('doc-a-h1').innerText = document.getElementById('a-h1').value; document.getElementById('doc-a-h2').innerText = document.getElementById('a-h2').value; document.getElementById('doc-a-substituto').innerText = document.getElementById('a-substituto').value.toUpperCase(); document.getElementById('doc-a-mat-sub').innerText = document.getElementById('a-mat-sub').value; ['part','est','doenca','outro'].forEach(k=>document.getElementById('chk-a-'+k).innerText=''); document.getElementById('chk-a-'+document.getElementById('a-motivo').value).innerText='X'; setDocDate(); document.getElementById('view-abono').classList.add('visible'); }
+    function gerarPermuta() { document.getElementById('doc-p-nome').innerText = document.getElementById('p-nome').value.toUpperCase(); document.getElementById('doc-p-mat').innerText = document.getElementById('p-mat').value; document.getElementById('doc-p-servico1').innerText = document.getElementById('p-servico1').value.toUpperCase(); document.getElementById('doc-p-data1').innerText = document.getElementById('p-data1').value.split('-').reverse().join('/'); document.getElementById('doc-p-h1a').innerText = document.getElementById('p-h1a').value; document.getElementById('doc-p-h1b').innerText = document.getElementById('p-h1b').value; document.getElementById('doc-p-substituto').innerText = document.getElementById('p-substituto').value.toUpperCase(); document.getElementById('doc-p-mat-sub').innerText = document.getElementById('p-mat-sub').value; document.getElementById('doc-p-servico2').innerText = document.getElementById('p-servico2').value.toUpperCase(); document.getElementById('doc-p-data2').innerText = document.getElementById('p-data2').value.split('-').reverse().join('/'); document.getElementById('doc-p-h2a').innerText = document.getElementById('p-h2a').value; document.getElementById('doc-p-h2b').innerText = document.getElementById('p-h2b').value; setDocDate(); document.getElementById('view-permuta').classList.add('visible'); }
+    function nav(id,btn){ document.querySelectorAll('.content').forEach(c=>c.classList.remove('active')); document.querySelectorAll('.tab-btn').forEach(b=>b.classList.remove('active')); document.getElementById(id).classList.add('active'); btn.classList.add('active'); }
+    function salvarNotas(){ localStorage.setItem('tactical_notepad',document.getElementById('notepad').value); }
+    function exportarCSV(){ let csv="DATA;CIDADE;TURNO;TIPO;NATUREZA;HORAS;VALOR;STATUS;OBS\n"; dbExtras.forEach(d=>{ csv+=`${d.data};${d.cidade};${d.periodo||''};${d.tipo};${d.natureza||''};${d.horas};${d.valor.toFixed(2).replace('.',',')};${d.status};${d.obs}\n` }); let link=document.createElement('a'); link.href='data:text/csv;charset=utf-8,'+encodeURI(csv); link.download='EXTRAS.csv'; link.click(); }
+    function toBRL(v){ return v.toLocaleString('pt-BR',{style:'currency',currency:'BRL'}); }
+    function formatarMoeda(e){ let v=e.value.replace(/\D/g,''); v=(v/100).toFixed(2)+''; v=v.replace('.',',').replace(/(\d)(?=(\d{3})+(?!\d))/g,'$1.'); e.value='R$ '+v; }
+    function lerMoeda(v){ return parseFloat(v.replace('R$','').trim().replaceAll('.','').replace(',','.'))||0; }
     </script>
 </body>
 </html>
