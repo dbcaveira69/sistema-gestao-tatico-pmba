@@ -25,21 +25,30 @@
 
         * { margin: 0; padding: 0; box-sizing: border-box; }
         
+        /* ALTERAÇÃO: Padding zerado para tela cheia */
         body { 
             font-family: 'Roboto', sans-serif; 
             background-color: var(--bg-body); 
             background-image: radial-gradient(#2c2f33 1px, transparent 1px);
             background-size: 20px 20px;
             color: var(--text-main); 
-            padding: 20px; padding-bottom: 80px; 
+            padding: 0; 
+            padding-bottom: 0; 
         }
 
-        .container { max-width: 1200px; margin: 0 auto; }
+        /* ALTERAÇÃO: Container ocupa 100%, sem limite de largura */
+        .container { 
+            width: 100%; 
+            max-width: 100%; 
+            margin: 0; 
+            min-height: 100vh;
+        }
 
         .header-tactical {
             border-bottom: 2px solid var(--primary);
             padding-bottom: 15px; margin-bottom: 25px;
             display: flex; justify-content: space-between; align-items: center;
+            padding: 15px; /* Adicionado padding interno */
         }
         .header-title { font-family: 'Rajdhani'; font-size: 24px; font-weight: 700; color: var(--tech-accent); text-transform: uppercase; letter-spacing: 2px; display: flex; align-items: center; gap: 10px; }
         
@@ -47,7 +56,7 @@
         .btn-config:hover { color: var(--tech-accent); border-color: var(--tech-accent); }
 
         /* CARDS */
-        .creditor-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 15px; margin-bottom: 30px; }
+        .creditor-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 15px; margin-bottom: 30px; padding: 0 15px; }
         .creditor-card { background: var(--bg-panel); border: 1px solid var(--border); padding: 20px; border-radius: 4px; position: relative; overflow: hidden; }
         .creditor-card::before { content:''; position: absolute; left:0; top:0; height:100%; width:4px; background: var(--border); }
         .creditor-card.banco::before { background: #f46a6a; }
@@ -61,7 +70,7 @@
         .money-remaining { color: var(--alert); font-weight: bold; }
 
         /* DASHBOARD */
-        .dashboard-main { display: grid; grid-template-columns: 2fr 1fr; gap: 20px; margin-bottom: 30px; }
+        .dashboard-main { display: grid; grid-template-columns: 2fr 1fr; gap: 20px; margin-bottom: 30px; padding: 0 15px; }
         .chart-box { background: var(--bg-panel); padding: 20px; border: 1px solid var(--border); border-radius: 4px; height: 300px; }
         .kpi-box { display: flex; flex-direction: column; gap: 15px; }
         .kpi-card { background: var(--bg-panel); padding: 15px; border-left: 4px solid var(--primary); border-radius: 2px; }
@@ -69,7 +78,7 @@
         .kpi-value { font-family: 'Rajdhani'; font-size: 24px; font-weight: 700; color: white; }
 
         /* FORM */
-        .action-panel { background: #181a1d; border: 1px solid var(--tech-accent); padding: 20px; border-radius: 4px; margin-bottom: 30px; }
+        .action-panel { background: #181a1d; border: 1px solid var(--tech-accent); padding: 20px; border-radius: 4px; margin-bottom: 30px; margin-left: 15px; margin-right: 15px; }
         .action-title { color: var(--tech-accent); font-family: 'Rajdhani'; text-transform: uppercase; margin-bottom: 15px; font-weight: bold; border-bottom: 1px solid #333; padding-bottom: 5px; }
         .form-grid { display: grid; grid-template-columns: 1fr 1fr 1fr 1fr auto; gap: 10px; align-items: end; }
         .form-group label { display: block; font-size: 10px; color: #aaa; margin-bottom: 5px; text-transform: uppercase; }
@@ -78,7 +87,7 @@
         .btn-pay { background: var(--tech-accent); color: #000; border: none; padding: 10px 20px; font-weight: bold; cursor: pointer; height: 38px; text-transform: uppercase; font-family: 'Rajdhani'; }
         
         /* TABLE */
-        .history-section { background: var(--bg-panel); border: 1px solid var(--border); padding: 20px; border-radius: 4px; }
+        .history-section { background: var(--bg-panel); border: 1px solid var(--border); padding: 20px; border-radius: 4px; margin: 0 15px; }
         table { width: 100%; border-collapse: collapse; font-size: 13px; }
         th { text-align: left; color: var(--tech-accent); padding: 10px; border-bottom: 2px solid var(--primary); text-transform: uppercase; font-size: 11px; }
         td { padding: 10px; border-bottom: 1px solid #333; color: #ccc; }
