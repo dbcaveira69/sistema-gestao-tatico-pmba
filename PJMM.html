@@ -139,7 +139,6 @@
         });
     }
 
-    // CORREÇÃO: Função para comprimir imagem e evitar payload gigante
     function comprimirImagem(file) {
         const reader = new FileReader();
         reader.readAsDataURL(file);
@@ -148,7 +147,6 @@
             img.src = event.target.result;
             img.onload = () => {
                 const canvas = document.createElement('canvas');
-                // Reduz resolução máxima para 800px para economizar espaço
                 const MAX_WIDTH = 800; 
                 const scale = MAX_WIDTH / img.width;
                 if (scale < 1) {
@@ -158,11 +156,8 @@
                     canvas.width = img.width;
                     canvas.height = img.height;
                 }
-                
                 const ctx = canvas.getContext('2d');
                 ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
-                
-                // Converte para JPEG com qualidade 0.6 (reduz drasticamente o tamanho do base64)
                 base64Temp = canvas.toDataURL('image/jpeg', 0.6);
                 
                 document.getElementById('prevImg').src = base64Temp;
@@ -211,13 +206,11 @@
         else { status.innerText = "PENSÃO: PENDENTE (VENCE DIA 10)"; status.style.color = "#f1c40f"; }
     }
 
-    // CORREÇÃO: Função de salvar otimizada (sem reload e com feedback)
     async function registrar(type) {
         const btn = document.getElementById(type === 'pensao' ? 'btn-save-p' : 'btn-save-e');
         const valor = parseFloat(document.getElementById(type === 'pensao' ? 'p-valor' : 'e-valor').value);
         if(!valor) return alert("Defina o valor.");
 
-        // Bloqueia botão e muda texto
         const textoOriginal = btn.innerText;
         btn.innerText = "SALVANDO... AGUARDE";
         btn.disabled = true;
@@ -240,7 +233,6 @@
         try {
             await sincronizar();
             
-            // Limpa form e atualiza tabela sem reload
             document.getElementById(type === 'pensao' ? 'p-valor' : 'e-valor').value = '';
             if(type === 'extras') document.getElementById('e-desc').value = '';
             base64Temp = null;
@@ -282,31 +274,30 @@
 
     function verImg(src) { document.getElementById('fullImg').src = src; document.getElementById('imgModal').style.display = 'flex'; }
 
+    // --- CORREÇÃO CRÍTICA: Ler antes de Salvar (Merge) ---
     async function sincronizar() {
-        // Envia o banco de dados completo atualizado
-        const dados = {
-            pensao: dbPensao,
-            gastos_extras: dbExtras
-        };
-        // POST com no-cors (não retornará resposta legível, mas salva)
-        await fetch(API_URL, { method: 'POST', mode: 'no-cors', body: JSON.stringify(dados) });
+        // 1. Baixar o estado atual completo da nuvem
+        const res = await fetch(API_URL);
+        let dadosNuvem = await res.json();
+        
+        // 2. Se a nuvem estiver vazia ou inválida, inicializa objeto vazio
+        if (!dadosNuvem || typeof dadosNuvem !== 'object') dadosNuvem = {};
+
+        // 3. Atualizar APENAS as chaves de pensão, mantendo as outras (despesas, eventos, etc) intactas
+        dadosNuvem.pensao = dbPensao;
+        dadosNuvem.gastos_extras = dbExtras;
+        
+        // 4. Salvar o objeto completo de volta
+        await fetch(API_URL, { method: 'POST', mode: 'no-cors', body: JSON.stringify(dadosNuvem) });
     }
 
-    // CORREÇÃO: Excluir otimizado
     async function excluir(id, type) {
         if(confirm("Confirmar exclusão?")) {
             if(type === 'pensao') dbPensao = dbPensao.filter(x => x.id !== id);
             else dbExtras = dbExtras.filter(x => x.id !== id);
             
-            // Renderiza imediatamente para parecer rápido
             renderizarTabelas();
-            
-            // Sincroniza em segundo plano
-            try {
-                await sincronizar();
-            } catch(e) {
-                alert("Erro ao salvar exclusão na nuvem.");
-            }
+            try { await sincronizar(); } catch(e) { alert("Erro ao salvar exclusão na nuvem."); }
         }
     }
 </script>
