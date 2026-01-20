@@ -167,7 +167,6 @@
         
         #analise-detalhada-texto { margin-top: 20px; padding: 15px; border-top: 1px solid var(--border); font-size: 14px; line-height: 1.5; color: #aaa; }
 
-        /* ESTILOS NOVOS PARA O DASHBOARD DE CATEGORIA */
         .cat-header-banner {
             background: linear-gradient(90deg, var(--primary-dark) 0%, rgba(85, 107, 47, 0.2) 100%);
             border: 1px solid var(--primary);
@@ -570,86 +569,54 @@
         let chartCat = null, chartEvo = null;
         let chartCatEvoInstance = null, chartCatImpactInstance = null;
 
-        const bizusRapidos = ["Use o seletor de ano no cadastro.", "Lance as despesas assim que elas ocorrerem.", "Verifique a categoria na Inteligência.", "Use o botão CSV para relatórios.", "Disciplina é liberdade."];
-
         window.onload = function() {
-            anoView = new Date().getFullYear();
-            if(anoView < 2025) anoView = 2025;
+            anoView = new Date().getFullYear(); if(anoView < 2025) anoView = 2025;
             document.getElementById('ano-selecao').value = anoView;
             atualizarTitulosAno();
-
-            const selMesMeta = document.getElementById('m-mes-meta');
-            const selMesFiltro = document.getElementById('filtro-mes');
-            const selAnMes = document.getElementById('an-filtro-mes');
-            
-            meses.forEach(m => { 
-                selMesMeta.add(new Option(m, m));
-                selMesFiltro.add(new Option(m, m));
-                selAnMes.add(new Option(m, m));
-            });
-            
-            const selAno = document.getElementById('m-ano-select');
-            const selAnoFiltro = document.getElementById('filtro-ano');
-            const selAnoOnly = document.getElementById('filtro-ano-only');
-            const selAnAno = document.getElementById('an-filtro-ano');
-
-            for(let y=2024; y<=2030; y++){
-                selAno.add(new Option(y, y));
-                selAnoFiltro.add(new Option(y, y));
-                selAnoOnly.add(new Option(y, y));
-                selAnAno.add(new Option(y, y));
-            }
-            selAno.value = anoView;
-            selAnoFiltro.value = anoView;
-            selAnoOnly.value = anoView;
-            selAnAno.value = anoView;
+            popularSelects();
             
             document.getElementById('modal').addEventListener('keydown', e => { if(e.key==='Enter') salvar(); });
             
             carregarNuvem();
             carregarMotivacao(); 
-            setInterval(atualizarRelogioTatico, 1000); 
-            atualizarRelogioTatico();
+            setInterval(atualizarRelogioTatico, 1000); atualizarRelogioTatico();
             setInterval(carregarMotivacao, 30000);
             setInterval(rotinaBot, 30000);         
         };
 
-        function atualizarTitulosAno() {
-            ['ano-title-desp', 'ano-title-ganho', 'ano-title-analise', 'ano-title-fluxo', 'ano-title-metas'].forEach(id => {
-                const el = document.getElementById(id);
-                if(el) el.innerText = anoView;
-            });
+        function popularSelects() {
+            const selMesMeta = document.getElementById('m-mes-meta');
+            const selMesFiltro = document.getElementById('filtro-mes');
+            const selAnMes = document.getElementById('an-filtro-mes');
+            meses.forEach(m => { selMesMeta.add(new Option(m, m)); selMesFiltro.add(new Option(m, m)); selAnMes.add(new Option(m, m)); });
+            const selAno = document.getElementById('m-ano-select'); const selAnoFiltro = document.getElementById('filtro-ano'); const selAnoOnly = document.getElementById('filtro-ano-only'); const selAnAno = document.getElementById('an-filtro-ano');
+            for(let y=2024; y<=2030; y++){ selAno.add(new Option(y, y)); selAnoFiltro.add(new Option(y, y)); selAnoOnly.add(new Option(y, y)); selAnAno.add(new Option(y, y)); }
+            selAno.value = anoView; selAnoFiltro.value = anoView; selAnoOnly.value = anoView; selAnAno.value = anoView;
         }
 
-        function mudarAno(ano) {
-            if(!ano || ano < 2000) return;
-            anoView = parseInt(ano);
-            dataAtual.setFullYear(anoView);
-            document.getElementById('an-filtro-ano').value = anoView;
-            atualizarTitulosAno();
-            renderizarTudo();
-            if(document.getElementById('analise').classList.contains('active')) { renderAnalise(); rotinaBot(); }
-        }
-
-        function mudarMes(delta) {
-            dataAtual.setMonth(dataAtual.getMonth() + delta);
-            renderAgenda();
-        }
-
+        function atualizarTitulosAno() { ['ano-title-desp', 'ano-title-ganho', 'ano-title-analise', 'ano-title-fluxo', 'ano-title-metas'].forEach(id => { const el = document.getElementById(id); if(el) el.innerText = anoView; }); }
+        function mudarAno(ano) { if(!ano || ano < 2000) return; anoView = parseInt(ano); dataAtual.setFullYear(anoView); document.getElementById('an-filtro-ano').value = anoView; atualizarTitulosAno(); renderizarTudo(); if(document.getElementById('analise').classList.contains('active')) { renderAnalise(); rotinaBot(); } }
+        function mudarMes(delta) { dataAtual.setMonth(dataAtual.getMonth() + delta); renderAgenda(); }
         function getKey(mes) { return mes + '_' + anoView; }
 
+        // --- CORREÇÃO DE SINCRONIZAÇÃO GESTOR PRO ---
         function carregarNuvem() {
             fetch(API_URL)
             .then(res => res.json())
             .then(data => {
                 if(data) {
-                    dados = data;
-                    // --- AUTO-CORREÇÃO DE ESTRUTURA (Evita erro offline) ---
-                    if(!Array.isArray(dados.despesas)) dados.despesas = [];
-                    if(!Array.isArray(dados.eventos)) dados.eventos = [];
-                    if(!dados.ganhos || typeof dados.ganhos !== 'object') dados.ganhos = {};
-                    if(!dados.metas || typeof dados.metas !== 'object') dados.metas = {};
-                    if(!Array.isArray(dados.categorias)) {
+                    // Preservar dados que não são deste app, mas carregar os nossos
+                    // Como 'dados' é a variavel local, nós a preenchemos com o que veio da nuvem
+                    // Garantindo estrutura minima
+                    dados.despesas = data.despesas || [];
+                    dados.eventos = data.eventos || [];
+                    dados.ganhos = data.ganhos || {};
+                    dados.metas = data.metas || {};
+                    dados.notas_taticas = data.notas_taticas || "";
+                    dados.notas_gerais = data.notas_gerais || "";
+                    dados.categorias = data.categorias || [];
+                    
+                    if(dados.categorias.length === 0) {
                         dados.categorias = [
                             {nome: '🍔 Alimentação', cor: '#d35400'}, {nome: '🚗 Transporte', cor: '#2980b9'}, {nome: '👶 Maitê', cor: '#e84393'},
                             {nome: '🎉 Lazer', cor: '#f1c40f'}, {nome: '👕 Roupa', cor: '#16a085'}, {nome: '💡 Utilidade', cor: '#8e44ad'},
@@ -659,31 +626,48 @@
                         ];
                     }
                 }
-                
-                const selCatAnalise = document.getElementById('an-filtro-cat');
-                selCatAnalise.innerHTML = '<option value="">🎯 VISÃO GERAL (TODAS)</option>';
-                dados.categorias.forEach(c => { selCatAnalise.add(new Option(c.nome, c.nome)); });
-
-                if(dados.notas_taticas) document.getElementById('tactical-note-area').value = dados.notas_taticas;
-                if(dados.notas_gerais) document.getElementById('diario-missao').value = dados.notas_gerais;
-                
-                renderizarTudo();
-                rotinaBot(); 
-                
-                // Se corrigiu estrutura, salva para garantir persistência
-                salvarNuvem();
+                renderizarTudo(); rotinaBot(); 
             })
-            .catch(err => {
-                console.error(err);
-                const t = document.getElementById('toast');
-                t.innerText = "Base Offline Carregada"; t.style.display = 'block'; setTimeout(()=>t.style.display='none',3000);
-            });
+            .catch(err => { console.error(err); mostrarToast("Erro de Rede (Carga)"); });
         }
 
-        function salvarNuvem() {
-            fetch(API_URL, { method: 'POST', mode: 'no-cors', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(dados) })
-            .then(() => { const t=document.getElementById('toast'); t.innerText = "Sincronizado: Base de Dados"; t.style.display='block'; setTimeout(()=>t.style.display='none',3000); });
+        async function salvarNuvem() {
+            const t = document.getElementById('toast');
+            t.innerText = "Sincronizando..."; t.style.display='block'; t.style.background = '#f1c40f';
+
+            try {
+                // 1. BAIXAR TUDO (Para pegar o que o AbonEx salvou)
+                const res = await fetch(API_URL);
+                const bancoNuvem = await res.json();
+
+                // 2. ATUALIZAR SÓ A NOSSA PARTE
+                bancoNuvem.despesas = dados.despesas;
+                bancoNuvem.eventos = dados.eventos;
+                bancoNuvem.ganhos = dados.ganhos;
+                bancoNuvem.metas = dados.metas;
+                bancoNuvem.notas_taticas = dados.notas_taticas;
+                bancoNuvem.notas_gerais = dados.notas_gerais;
+                bancoNuvem.categorias = dados.categorias;
+                // IMPORTANTE: NÃO TOCAMOS EM 'abonos_extras', 'pensao', 'veiculo', etc.
+
+                // 3. ENVIAR TUDO DE VOLTA
+                await fetch(API_URL, {
+                    method: 'POST',
+                    mode: 'no-cors',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(bancoNuvem)
+                });
+
+                t.innerText = "Sincronizado: Base de Dados"; t.style.background = 'var(--primary-dark)';
+                setTimeout(()=>t.style.display='none',3000);
+
+            } catch(e) {
+                console.error(e);
+                t.innerText = "Erro ao Salvar (Tente Novamente)"; t.style.background = '#c0392b';
+            }
         }
+        
+        function mostrarToast(msg) { const t=document.getElementById('toast'); t.innerText=msg; t.style.display='block'; setTimeout(()=>t.style.display='none',3000); }
 
         function nav(id, btn) {
             document.querySelectorAll('.content').forEach(c => c.classList.remove('active'));
@@ -716,86 +700,53 @@
             return '<i class="fas fa-tag"></i>';
         }
 
-        function getCorCategoria(nomeCat) {
-            const cat = dados.categorias.find(c => c.nome === nomeCat);
-            return cat ? cat.cor : '#666'; 
-        }
-
-        function toggleAnFiltros() {
-            const tipo = document.getElementById('an-tipo-filtro').value;
-            document.getElementById('an-filtro-padrao').style.display = (tipo === 'padrao') ? 'flex' : 'none';
-            document.getElementById('an-filtro-periodo').style.display = (tipo === 'periodo') ? 'flex' : 'none';
-            renderAnalise();
-        }
+        function getCorCategoria(nomeCat) { const cat = dados.categorias.find(c => c.nome === nomeCat); return cat ? cat.cor : '#666'; }
+        function toggleAnFiltros() { const tipo = document.getElementById('an-tipo-filtro').value; document.getElementById('an-filtro-padrao').style.display = (tipo === 'padrao') ? 'flex' : 'none'; document.getElementById('an-filtro-periodo').style.display = (tipo === 'periodo') ? 'flex' : 'none'; renderAnalise(); }
 
         function renderAnalise() {
             const catAlvo = document.getElementById('an-filtro-cat').value;
             const containerGeral = document.getElementById('analise-geral-container');
             const containerCat = document.getElementById('analise-categoria-container');
             const tipoFiltro = document.getElementById('an-tipo-filtro').value;
-            let despesasFiltradas = [];
-            let totalPeriodoGeral = 0; 
-
+            let despesasFiltradas = []; let totalPeriodoGeral = 0; 
+            
             if(tipoFiltro === 'padrao') {
-                const fMes = document.getElementById('an-filtro-mes').value;
-                const fAno = document.getElementById('an-filtro-ano').value;
-                const anoRef = (fAno === 'all') ? null : fAno;
-                dados.despesas.forEach(d => {
-                    let matchMes = (fMes === 'all' || d.mes === fMes);
-                    let matchAno = (!anoRef || d.data.startsWith(anoRef));
-                    if(matchMes && matchAno) despesasFiltradas.push(d);
-                });
+                const fMes = document.getElementById('an-filtro-mes').value; const fAno = document.getElementById('an-filtro-ano').value;
+                dados.despesas.forEach(d => { if((fMes === 'all' || d.mes === fMes) && (!fAno || fAno==='all' || d.data.startsWith(fAno))) despesasFiltradas.push(d); });
                 totalPeriodoGeral = despesasFiltradas.reduce((a,b)=>a+b.valor,0);
             } else {
-                const dtIni = document.getElementById('an-data-ini').value;
-                const dtFim = document.getElementById('an-data-fim').value;
-                if(!dtIni || !dtFim) return;
-                despesasFiltradas = dados.despesas.filter(d => d.data >= dtIni && d.data <= dtFim);
-                totalPeriodoGeral = despesasFiltradas.reduce((a,b)=>a+b.valor,0);
+                const dtIni = document.getElementById('an-data-ini').value; const dtFim = document.getElementById('an-data-fim').value;
+                if(dtIni && dtFim) { despesasFiltradas = dados.despesas.filter(d => d.data >= dtIni && d.data <= dtFim); totalPeriodoGeral = despesasFiltradas.reduce((a,b)=>a+b.valor,0); }
+            }
+            
+            const selCatAnalise = document.getElementById('an-filtro-cat');
+            // Re-populate only if empty to avoid reset loop, check existence
+            if(selCatAnalise.options.length <= 1) {
+                 selCatAnalise.innerHTML = '<option value="">🎯 VISÃO GERAL (TODAS)</option>';
+                 dados.categorias.forEach(c => { selCatAnalise.add(new Option(c.nome, c.nome)); });
             }
 
             if (catAlvo === "") {
-                containerGeral.style.display = 'block';
-                containerCat.style.display = 'none';
-                let totD = totalPeriodoGeral;
-                let totG = 0; 
-                const cats = {};
-                despesasFiltradas.forEach(d => { cats[d.cat] = (cats[d.cat] || 0) + d.valor; });
+                containerGeral.style.display = 'block'; containerCat.style.display = 'none';
+                let totD = totalPeriodoGeral; let totG = 0; 
+                const cats = {}; despesasFiltradas.forEach(d => { cats[d.cat] = (cats[d.cat] || 0) + d.valor; });
                 
                 if(tipoFiltro === 'padrao') {
-                     const fMes = document.getElementById('an-filtro-mes').value;
-                     const fAno = document.getElementById('an-filtro-ano').value;
-                     meses.forEach(m => {
-                         if(fMes !== 'all' && fMes !== m) return;
-                         if(fAno !== 'all') {
-                             const k = m+'_'+fAno; if(dados.ganhos[k]) totG += dados.ganhos[k].fixo+dados.ganhos[k].extra;
-                         } else {
-                             Object.keys(dados.ganhos).forEach(k => { if(k.startsWith(m+'_')) totG += dados.ganhos[k].fixo+dados.ganhos[k].extra; });
-                         }
-                     });
+                     const fMes = document.getElementById('an-filtro-mes').value; const fAno = document.getElementById('an-filtro-ano').value;
+                     meses.forEach(m => { if((fMes === 'all' || fMes === m)) { 
+                         if(fAno!=='all') { const k=m+'_'+fAno; if(dados.ganhos[k]) totG+=dados.ganhos[k].fixo+dados.ganhos[k].extra; }
+                         else { Object.keys(dados.ganhos).forEach(k => { if(k.startsWith(m+'_')) totG+=dados.ganhos[k].fixo+dados.ganhos[k].extra; }); }
+                     }});
                 }
-                
-                document.getElementById('an-total-desp').innerText=format(totD);
-                document.getElementById('an-total-ganhos').innerText=format(totG);
-                document.getElementById('an-saldo').innerText=format(totG-totD);
-
-                const labels = Object.keys(cats);
-                const dataValues = Object.values(cats);
-                const bgColors = labels.map(l => getCorCategoria(l));
-
+                document.getElementById('an-total-desp').innerText=format(totD); document.getElementById('an-total-ganhos').innerText=format(totG); document.getElementById('an-saldo').innerText=format(totG-totD);
                 if(chartCat) chartCat.destroy();
-                chartCat = new Chart(document.getElementById('chartCat'), { 
-                    type: 'doughnut', 
-                    data: { labels: labels, datasets: [{ data: dataValues, backgroundColor: bgColors, borderColor: '#1e2124' }] }, 
-                    options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } } } 
-                });
-
+                chartCat = new Chart(document.getElementById('chartCat'), { type: 'doughnut', data: { labels: Object.keys(cats), datasets: [{ data: Object.values(cats), backgroundColor: Object.keys(cats).map(l => getCorCategoria(l)), borderColor: '#1e2124' }] }, options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } } } });
+                
                 let dataRec = [], dataDesp = [];
                 meses.forEach(m => {
                     let rec=0, desp=0;
                     if(document.getElementById('an-filtro-ano').value !== 'all') {
-                         const ano = document.getElementById('an-filtro-ano').value;
-                         const k = m+'_'+ano;
+                         const ano = document.getElementById('an-filtro-ano').value; const k = m+'_'+ano;
                          if(dados.ganhos[k]) rec = dados.ganhos[k].fixo+dados.ganhos[k].extra;
                          desp = dados.despesas.filter(d=>d.mes===m && d.data.startsWith(ano)).reduce((a,b)=>a+b.valor,0);
                     }
@@ -803,59 +754,25 @@
                 });
                 if(chartEvo) chartEvo.destroy();
                 chartEvo = new Chart(document.getElementById('chartEvo'), { type: 'bar', data: { labels: meses.map(m=>m.substr(0,3)), datasets: [{label:'Recursos',data:dataRec,backgroundColor:'#8bc34a'}, {label:'Baixas',data:dataDesp,backgroundColor:'#f46a6a'}] }, options: { responsive: true, maintainAspectRatio: false } });
-
-                let maiorCat = { nome: '', valor: 0 };
-                for (const [cat, val] of Object.entries(cats)) {
-                    if (val > maiorCat.valor) maiorCat = { nome: cat, valor: val };
-                }
-
-                let textoAnalise = "";
-                if (maiorCat.valor > 0) {
-                    const pct = ((maiorCat.valor / totD) * 100).toFixed(1);
-                    textoAnalise = `<strong style="color:var(--tech-accent)">RELATÓRIO DE INTELIGÊNCIA:</strong><br>
-                    A categoria <strong>${maiorCat.nome}</strong> é o maior foco de despesa no período, totalizando <strong>${format(maiorCat.valor)}</strong>.<br>
-                    Isso representa <span style="color:#f46a6a; font-weight:bold;">${pct}%</span> das baixas filtradas.<br>
-                    <br><em>Ação Sugerida: Rever gastos variáveis nesta frente.</em>`;
-                } else {
-                    textoAnalise = "Sem dados suficientes para gerar inteligência de combate neste período.";
-                }
-                document.getElementById('analise-detalhada-texto').innerHTML = textoAnalise;
-
+                
+                let maiorCat = { nome: '', valor: 0 }; for (const [cat, val] of Object.entries(cats)) { if (val > maiorCat.valor) maiorCat = { nome: cat, valor: val }; }
+                document.getElementById('analise-detalhada-texto').innerHTML = maiorCat.valor > 0 ? `<strong style="color:var(--tech-accent)">INTELIGÊNCIA:</strong> Maior gasto: <strong>${maiorCat.nome}</strong> (${format(maiorCat.valor)}).` : "Sem dados suficientes.";
             } else {
-                containerGeral.style.display = 'none';
-                containerCat.style.display = 'block';
+                containerGeral.style.display = 'none'; containerCat.style.display = 'block';
                 const despesasAlvo = despesasFiltradas.filter(d => d.cat === catAlvo);
                 const totalAlvo = despesasAlvo.reduce((a,b) => a+b.valor, 0);
                 document.getElementById('cat-header-nome').innerHTML = `${getIconeCategoria(catAlvo)} ${catAlvo.toUpperCase()}`;
                 document.getElementById('cat-header-total').innerText = format(totalAlvo);
                 const anoGrafico = (tipoFiltro === 'padrao' && document.getElementById('an-filtro-ano').value !== 'all') ? document.getElementById('an-filtro-ano').value : anoView;
                 const evoData = meses.map(m => { return dados.despesas.filter(d => d.cat === catAlvo && d.mes === m && d.data.startsWith(anoGrafico)).reduce((a,b)=>a+b.valor,0); });
-
                 if(chartCatEvoInstance) chartCatEvoInstance.destroy();
-                chartCatEvoInstance = new Chart(document.getElementById('chartCatEvo'), {
-                    type: 'line',
-                    data: { labels: meses.map(m=>m.substr(0,3)), datasets: [{ label: `Gastos: ${catAlvo}`, data: evoData, borderColor: getCorCategoria(catAlvo), backgroundColor: getCorCategoria(catAlvo), borderWidth: 3, pointBackgroundColor: '#1e2124', pointBorderColor: getCorCategoria(catAlvo), pointRadius: 4, tension: 0.3 }] },
-                    options: { responsive: true, maintainAspectRatio: false, scales: { y: { grid: { color: '#333' } }, x: { grid: { display: false } } }, plugins: { legend: { display: true, labels: { color: '#ccc' } } } }
-                });
-
+                chartCatEvoInstance = new Chart(document.getElementById('chartCatEvo'), { type: 'line', data: { labels: meses.map(m=>m.substr(0,3)), datasets: [{ label: catAlvo, data: evoData, borderColor: getCorCategoria(catAlvo), backgroundColor: getCorCategoria(catAlvo), borderWidth: 3, tension: 0.3 }] }, options: { responsive: true, maintainAspectRatio: false } });
                 const valorOutros = totalPeriodoGeral - totalAlvo;
-                const pct = totalPeriodoGeral > 0 ? ((totalAlvo / totalPeriodoGeral) * 100).toFixed(1) : 0;
-                document.getElementById('cat-impact-text').innerHTML = `Representa <span style="color:${getCorCategoria(catAlvo)}">${pct}%</span> de todos os gastos do período.`;
-
                 if(chartCatImpactInstance) chartCatImpactInstance.destroy();
-                chartCatImpactInstance = new Chart(document.getElementById('chartCatImpact'), {
-                    type: 'doughnut',
-                    data: { labels: [catAlvo, 'Outros'], datasets: [{ data: [totalAlvo, valorOutros], backgroundColor: [getCorCategoria(catAlvo), '#2c3e50'], borderColor: '#1e2124', borderWidth: 2 }] },
-                    options: { responsive: true, maintainAspectRatio: false, cutout: '70%', plugins: { legend: { display: true, position: 'bottom', labels: { color: '#888', font: { size: 10 } } } } }
-                });
-
-                const tbDossier = document.getElementById('tbody-cat-dossier');
-                tbDossier.innerHTML = '';
-                if(despesasAlvo.length === 0) { tbDossier.innerHTML = '<tr><td colspan="3" align="center" style="padding:20px;">Sem registros neste período.</td></tr>'; } 
-                else {
-                    despesasAlvo.sort((a,b) => b.data.localeCompare(a.data)); 
-                    despesasAlvo.forEach(d => { tbDossier.innerHTML += `<tr><td style="color:${getCorCategoria(catAlvo)}; font-weight:bold;">${d.data.split('-').reverse().join('/')}</td><td>${d.desc}</td><td style="text-align:right; font-family:'Courier New';">${format(d.valor)}</td></tr>`; });
-                }
+                chartCatImpactInstance = new Chart(document.getElementById('chartCatImpact'), { type: 'doughnut', data: { labels: [catAlvo, 'Outros'], datasets: [{ data: [totalAlvo, valorOutros], backgroundColor: [getCorCategoria(catAlvo), '#2c3e50'], borderColor: '#1e2124' }] }, options: { responsive: true, maintainAspectRatio: false, cutout: '70%', plugins: { legend: { display: true, position: 'bottom', labels: { color: '#888', font: { size: 10 } } } } } });
+                const tbDossier = document.getElementById('tbody-cat-dossier'); tbDossier.innerHTML = '';
+                despesasAlvo.sort((a,b) => b.data.localeCompare(a.data)); 
+                despesasAlvo.forEach(d => { tbDossier.innerHTML += `<tr><td style="color:${getCorCategoria(catAlvo)}; font-weight:bold;">${d.data.split('-').reverse().join('/')}</td><td>${d.desc}</td><td style="text-align:right;">${format(d.valor)}</td></tr>`; });
             }
         }
 
@@ -873,8 +790,7 @@
             if(confirm(`Remover categoria "${nome}"?`)) {
                 dados.categorias = dados.categorias.filter(c => c.nome !== nome);
                 const sel = document.getElementById('m-cat'); sel.remove(sel.selectedIndex);
-                const selAn = document.getElementById('an-filtro-cat'); 
-                for (let i=0; i<selAn.length; i++){ if (selAn.options[i].value == nome) selAn.remove(i); }
+                const selAn = document.getElementById('an-filtro-cat'); for (let i=0; i<selAn.length; i++){ if (selAn.options[i].value == nome) selAn.remove(i); }
                 salvarNuvem();
             }
         }
@@ -904,28 +820,22 @@
             if(chartRecInstance) chartRecInstance.destroy();
             chartRecInstance = new Chart(ctxRec, { type: 'bar', data: { labels: chartLabels, datasets: [{ label: 'Evolução', data: chartData, backgroundColor: '#8bc34a' }] }, options: { responsive: true, maintainAspectRatio: false, scales: { x: { grid: { display: false } }, y: { grid: { color: '#333' } } }, plugins: { legend: { display: false } } } });
         }
-        function saveGanho(m, t, el) { dados.ganhos[m+'_'+anoView][t] = lerMoeda(el.value); renderGanhos(); salvarNuvem(); rotinaBot(); }
+        function saveGanho(m, t, el) { dados.ganhos[m+'_'+anoView][t] = lerMoeda(el.value); renderGanhos(); salvarNuvem(); }
         function lerMoeda(v) { return parseFloat(v.replace('R$','').trim().replaceAll('.','').replace(',','.')) || 0; }
         function format(v) { return v.toLocaleString('pt-BR', {style: 'currency', currency: 'BRL'}); }
         function formatarMoeda(e) { let v=e.value.replace(/\D/g,''); v=(v/100).toFixed(2)+''; v=v.replace('.',',').replace(/(\d)(?=(\d{3})+(?!\d))/g,'$1.'); e.value='R$ '+v; }
 
         function salvar() {
             const tipo = document.getElementById('m-tipo').value;
-            const dt = document.getElementById('m-data').value; 
-            const desc = document.getElementById('m-desc').value;
-            const id = editID || Date.now();
-            
+            const dt = document.getElementById('m-data').value; const desc = document.getElementById('m-desc').value; const id = editID || Date.now();
             if(tipo === 'Meta') {
                  const m = document.getElementById('m-mes-meta').value; const key = getKey(m);
                  dados.metas[key] = { alvo: lerMoeda(document.getElementById('m-meta-alvo').value), reserva: lerMoeda(document.getElementById('m-meta-reserva').value) };
             } else {
                 if(!dt || !desc) return alert('DADOS INCOMPLETOS NA FICHA');
                 const mesNome = meses[parseInt(dt.split('-')[1])-1];
-                if(tipo==='Despesa') {
-                    updateList(dados.despesas, {id, tipo, data:dt, desc, mes:mesNome, cat:document.getElementById('m-cat').value, valor:lerMoeda(document.getElementById('m-valor').value)});
-                } else {
-                    updateList(dados.eventos, {id, tipo, data:dt, desc, local:document.getElementById('m-local').value, hora:document.getElementById('m-hora').value, alarme:document.getElementById('m-alarme').value});
-                }
+                if(tipo==='Despesa') { updateList(dados.despesas, {id, tipo, data:dt, desc, mes:mesNome, cat:document.getElementById('m-cat').value, valor:lerMoeda(document.getElementById('m-valor').value)}); } 
+                else { updateList(dados.eventos, {id, tipo, data:dt, desc, local:document.getElementById('m-local').value, hora:document.getElementById('m-hora').value, alarme:document.getElementById('m-alarme').value}); }
             }
             renderizarTudo(); fecharModal(); document.getElementById('popup-salvo').style.display='flex'; setTimeout(()=>document.getElementById('popup-salvo').style.display='none',1500); salvarNuvem();
         }
@@ -946,45 +856,24 @@
         }
         function fecharModal() { document.getElementById('modal').style.display='none'; }
         function ajustarModal() { abrirModal(document.getElementById('m-tipo').value); }
-        function editarDespesa(id) { 
-            const d=dados.despesas.find(x=>x.id===id); abrirModal('Despesa'); editID=id; 
-            document.getElementById('m-data').value=d.data; document.getElementById('m-desc').value=d.desc; document.getElementById('m-cat').value=d.cat; document.getElementById('m-valor').value='R$ '+d.valor.toFixed(2).replace('.',','); 
-        }
+        function editarDespesa(id) { const d=dados.despesas.find(x=>x.id===id); abrirModal('Despesa'); editID=id; document.getElementById('m-data').value=d.data; document.getElementById('m-desc').value=d.desc; document.getElementById('m-cat').value=d.cat; document.getElementById('m-valor').value='R$ '+d.valor.toFixed(2).replace('.',','); }
 
-        // --- OUTRAS FUNÇÕES (Agenda, Fluxo, PDF) ---
         function renderAgenda() {
-            const grid = document.getElementById('calendar-grid'); 
-            const titulo = document.getElementById('cal-titulo'); 
-            grid.innerHTML = '';
-            dataAtual.setFullYear(anoView); 
-            const y = dataAtual.getFullYear();
-            const m = dataAtual.getMonth(); 
-            const realHoje = new Date();
-            
+            const grid = document.getElementById('calendar-grid'); const titulo = document.getElementById('cal-titulo'); grid.innerHTML = '';
+            dataAtual.setFullYear(anoView); const y = dataAtual.getFullYear(); const m = dataAtual.getMonth(); const realHoje = new Date();
             titulo.innerText = `${meses[m]} ${y}`;
             ['D','S','T','Q','Q','S','S'].forEach(d => { grid.innerHTML += `<div style="text-align:center;font-size:10px;font-weight:bold;color:#666">${d}</div>`; });
-            
-            const firstDay = new Date(y, m, 1).getDay(); 
-            const daysInMonth = new Date(y, m+1, 0).getDate();
-            
+            const firstDay = new Date(y, m, 1).getDay(); const daysInMonth = new Date(y, m+1, 0).getDate();
             for(let i=0; i<firstDay; i++) { grid.innerHTML += `<div style="background:#181a1d"></div>`; }
-            
             for(let d=1; d<=daysInMonth; d++) {
                 const dt = `${y}-${String(m+1).padStart(2,'0')}-${String(d).padStart(2,'0')}`;
                 const isToday = (d === realHoje.getDate() && m === realHoje.getMonth() && y === realHoje.getFullYear());
-                const styleToday = isToday ? 'border: 2px solid var(--tech-accent); box-shadow: inset 0 0 15px rgba(139, 195, 74, 0.2);' : '';
                 const evs = dados.eventos.filter(e => e.data === dt); 
-                let html = '';
-                evs.forEach(e => { html += `<div class="event-chip" onclick="verDetalhe('${e.id}')">${e.desc.substr(0,10)}</div>`; });
-                grid.innerHTML += `<div class="day-cell" style="${styleToday}"><span class="day-header" style="${isToday ? 'color:var(--tech-accent); font-weight:bold;':''}">${d}</span>${html}</div>`;
+                let html = ''; evs.forEach(e => { html += `<div class="event-chip" onclick="verDetalhe('${e.id}')">${e.desc.substr(0,10)}</div>`; });
+                grid.innerHTML += `<div class="day-cell" style="${isToday ? 'border: 2px solid var(--tech-accent); box-shadow: inset 0 0 15px rgba(139, 195, 74, 0.2);' : ''}"><span class="day-header" style="${isToday ? 'color:var(--tech-accent); font-weight:bold;':''}">${d}</span>${html}</div>`;
             }
         }
-
-        function verDetalhe(id) {
-            const ev = dados.eventos.find(e=>e.id==id); if(!ev) return;
-            currentEventID=id; document.getElementById('det-titulo').innerText=ev.desc;
-            document.getElementById('det-hora-data').innerText=`${ev.data} | ${ev.hora}`; document.getElementById('detalhe-evento').style.display='flex';
-        }
+        function verDetalhe(id) { const ev = dados.eventos.find(e=>e.id==id); if(!ev) return; currentEventID=id; document.getElementById('det-titulo').innerText=ev.desc; document.getElementById('det-hora-data').innerText=`${ev.data} | ${ev.hora}`; document.getElementById('detalhe-evento').style.display='flex'; }
         function editarEventoAtual() { document.getElementById('detalhe-evento').style.display='none'; const ev = dados.eventos.find(e=>e.id==currentEventID); if(ev){ abrirModal('Evento'); editID=ev.id; document.getElementById('m-desc').value=ev.desc; document.getElementById('m-data').value=ev.data; document.getElementById('m-local').value=ev.local; document.getElementById('m-hora').value=ev.hora; } }
         function excluirEventoAtual() { if(confirm('Remover?')){ dados.eventos=dados.eventos.filter(x=>x.id!=currentEventID); document.getElementById('detalhe-evento').style.display='none'; renderAgenda(); salvarNuvem(); } }
 
@@ -1020,40 +909,17 @@
         function calcResult() { try { document.getElementById('calc-display').value = eval(document.getElementById('calc-display').value); } catch(e) { document.getElementById('calc-display').value = 'ERRO'; } }
         function salvarNotasTaticas() { dados.notas_taticas = document.getElementById('tactical-note-area').value; salvarNuvem(); alert('NOTAS SALVAS'); }
         function salvarDiario() { dados.notas_gerais = document.getElementById('diario-missao').value; salvarNuvem(); }
-
         function exportarCSV() {
             let csv = "TIPO;DATA;DESCRIÇÃO;CATEGORIA;VALOR\n";
             dados.despesas.filter(d=>d.data.startsWith(anoView)).forEach(d => { csv += `DESPESA;${d.data};${d.desc};${d.cat};${d.valor.toFixed(2)}\n` });
             const link = document.createElement("a"); link.href = URL.createObjectURL(new Blob([csv], {type: 'text/csv;charset=utf-8;'}));
             link.download = `RELATORIO_${anoView}.csv`; link.click();
         }
-
-        function atualizarRelogioTatico() {
-            const agora = new Date(); document.getElementById('tactical-clock').innerText = `${agora.toLocaleDateString('pt-BR', { day: '2-digit', month: 'long', year: 'numeric' }).toUpperCase()} - ${agora.toLocaleTimeString('pt-BR')}`;
-        }
-        function carregarMotivacao() {
-            const f = ["SE VOCÊ QUER A PAZ, PREPARE-SE PARA A GUERRA.", "DISCIPLINA É A LIBERDADE.", "TREINAMENTO DIFÍCIL, COMBATE FÁCIL."];
-            document.getElementById('motivation-box').innerHTML = `"${f[Math.floor(Math.random()*f.length)]}"`;
-        }
-        function rotinaBot() {
-            estadoBot = (estadoBot === 0) ? 1 : 0;
-            if (estadoBot === 0) {
-                 const total = dados.despesas.filter(d=>d.data.startsWith(anoView)).reduce((a,b)=>a+b.valor,0);
-                 document.getElementById('bot-message').innerHTML = `GASTO ANUAL ACUMULADO: <strong style="color:#f46a6a">${format(total)}</strong>`;
-            } else {
-                document.getElementById('bot-message').innerHTML = "BIZU: Mantenha sua reserva de emergência em dia.";
-            }
-        }
-        function atualizarDataModal() {
-            const y = document.getElementById('m-ano-select').value;
-            const h = new Date(); document.getElementById('m-data').value = `${y}-${String(h.getMonth()+1).padStart(2,'0')}-${String(h.getDate()).padStart(2,'0')}`;
-        }
-        function ajustarFiltroRelatorio() {
-            const t = document.getElementById('filtro-tipo').value;
-            document.getElementById('filtro-mes-container').style.display = (t==='mensal')?'block':'none';
-            document.getElementById('filtro-ano-container').style.display = (t==='anual')?'block':'none';
-            document.getElementById('filtro-data-container').style.display = (t==='data')?'block':'none';
-        }
+        function atualizarRelogioTatico() { const agora = new Date(); document.getElementById('tactical-clock').innerText = `${agora.toLocaleDateString('pt-BR', { day: '2-digit', month: 'long', year: 'numeric' }).toUpperCase()} - ${agora.toLocaleTimeString('pt-BR')}`; }
+        function carregarMotivacao() { const f = ["SE VOCÊ QUER A PAZ, PREPARE-SE PARA A GUERRA.", "DISCIPLINA É A LIBERDADE.", "TREINAMENTO DIFÍCIL, COMBATE FÁCIL."]; document.getElementById('motivation-box').innerHTML = `"${f[Math.floor(Math.random()*f.length)]}"`; }
+        function rotinaBot() { estadoBot = (estadoBot === 0) ? 1 : 0; if (estadoBot === 0) { const total = dados.despesas.filter(d=>d.data.startsWith(anoView)).reduce((a,b)=>a+b.valor,0); document.getElementById('bot-message').innerHTML = `GASTO ANUAL ACUMULADO: <strong style="color:#f46a6a">${format(total)}</strong>`; } else { document.getElementById('bot-message').innerHTML = "BIZU: Mantenha sua reserva de emergência em dia."; } }
+        function atualizarDataModal() { const y = document.getElementById('m-ano-select').value; const h = new Date(); document.getElementById('m-data').value = `${y}-${String(h.getMonth()+1).padStart(2,'0')}-${String(h.getDate()).padStart(2,'0')}`; }
+        function ajustarFiltroRelatorio() { const t = document.getElementById('filtro-tipo').value; document.getElementById('filtro-mes-container').style.display = (t==='mensal')?'block':'none'; document.getElementById('filtro-ano-container').style.display = (t==='anual')?'block':'none'; document.getElementById('filtro-data-container').style.display = (t==='data')?'block':'none'; }
         async function gerarPDF() { alert("Funcionalidade de PDF simplificada neste código. Use o CSV para dados brutos."); }
 
     </script>
