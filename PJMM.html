@@ -2,7 +2,7 @@
 <html lang="pt-BR">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>Pensão & Extras - Tactical Ops</title>
     
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
@@ -16,8 +16,24 @@
             --border: #2d3238; --alert: #ff5252;
         }
         * { margin: 0; padding: 0; box-sizing: border-box; }
-        body { font-family: 'Roboto', sans-serif; background: var(--bg-body); color: var(--text-main); padding: 20px; }
         
+        /* TELA CHEIA ATIVADA */
+        body { 
+            font-family: 'Roboto', sans-serif; 
+            background: var(--bg-body); 
+            color: var(--text-main); 
+            padding: 0; 
+            padding-bottom: 0; 
+        }
+        
+        /* Container Full */
+        .container-full {
+            width: 100%;
+            min-height: 100vh;
+            padding: 20px;
+            padding-bottom: 80px; /* Espaço extra footer */
+        }
+
         /* HUD HEADER */
         .hud-header { border-left: 5px solid var(--primary); padding: 10px 15px; margin-bottom: 25px; display: flex; justify-content: space-between; align-items: center; background: linear-gradient(90deg, #1a1d21, transparent); }
         .hud-title { font-family: 'Rajdhani'; font-size: 22px; letter-spacing: 2px; text-transform: uppercase; color: var(--tech-accent); }
@@ -60,62 +76,64 @@
 </head>
 <body>
 
-<div id="imgModal" class="modal" onclick="this.style.display='none'"><img id="fullImg"></div>
+<div class="container-full">
+    <div id="imgModal" class="modal" onclick="this.style.display='none'"><img id="fullImg"></div>
 
-<div class="hud-header">
-    <div class="hud-title"><i class="fas fa-file-invoice-dollar"></i> Sistema Unificado de Pensão</div>
-    <div id="statusVencimento" style="font-size: 12px; font-weight: bold;"></div>
-</div>
-
-<div class="dash-grid">
-    <div class="stat-card"><span class="stat-label">Total Pensão (Anual)</span><div class="stat-value" id="stat-total-pensao">R$ 0,00</div></div>
-    <div class="stat-card"><span class="stat-label">Total Gastos Extras</span><div class="stat-value" id="stat-total-extras" style="color:var(--extra-accent)">R$ 0,00</div></div>
-    <div class="stat-card"><span class="stat-label">Consolidado Geral</span><div class="stat-value" id="stat-geral">R$ 0,00</div></div>
-</div>
-
-<div class="internal-tabs">
-    <div class="tab-item active" onclick="switchTab('pensao', this)"><i class="fas fa-hand-holding-usd"></i> Pensão Fixa</div>
-    <div class="tab-item extra" onclick="switchTab('extras', this)"><i class="fas fa-shopping-basket"></i> Gastos Extras</div>
-</div>
-
-<div id="panel-pensao" class="ops-panel active">
-    <div class="ops-grid">
-        <div class="input-group"><label>Data</label><input type="date" id="p-data" class="input-field"></div>
-        <div class="input-group"><label>Mês Ref.</label><select id="p-mes" class="input-field"><option>Janeiro</option><option>Fevereiro</option><option>Março</option><option>Abril</option><option>Maio</option><option>Junho</option><option>Julho</option><option>Agosto</option><option>Setembro</option><option>Outubro</option><option>Novembro</option><option>Dezembro</option></select></div>
-        <div class="input-group"><label>Valor (R$)</label><input type="number" id="p-valor" class="input-field" placeholder="0,00"></div>
-        <div class="input-group" style="display:flex; align-items:flex-end;"><button id="btn-save-p" class="btn-main" onclick="registrar('pensao')">Lançar Pensão</button></div>
+    <div class="hud-header">
+        <div class="hud-title"><i class="fas fa-file-invoice-dollar"></i> Sistema Unificado de Pensão</div>
+        <div id="statusVencimento" style="font-size: 12px; font-weight: bold;"></div>
     </div>
-</div>
 
-<div id="panel-extras" class="ops-panel" style="border-color: var(--extra-accent);">
-    <div class="ops-grid">
-        <div class="input-group"><label style="color:var(--extra-accent)">Data</label><input type="date" id="e-data" class="input-field"></div>
-        <div class="input-group" style="grid-column: span 2;"><label style="color:var(--extra-accent)">Descrição do Gasto</label><input type="text" id="e-desc" class="input-field" placeholder="Ex: Farmácia, Vestuário..."></div>
-        <div class="input-group"><label style="color:var(--extra-accent)">Valor (R$)</label><input type="number" id="e-valor" class="input-field" placeholder="0,00"></div>
-        <div class="input-group" style="display:flex; align-items:flex-end; grid-column: span 4;"><button id="btn-save-e" class="btn-main" style="background:var(--extra-accent); width:100%" onclick="registrar('extras')">Registrar Gasto Extra</button></div>
+    <div class="dash-grid">
+        <div class="stat-card"><span class="stat-label">Total Pensão (Anual)</span><div class="stat-value" id="stat-total-pensao">R$ 0,00</div></div>
+        <div class="stat-card"><span class="stat-label">Total Gastos Extras</span><div class="stat-value" id="stat-total-extras" style="color:var(--extra-accent)">R$ 0,00</div></div>
+        <div class="stat-card"><span class="stat-label">Consolidado Geral</span><div class="stat-value" id="stat-geral">R$ 0,00</div></div>
     </div>
-</div>
 
-<div class="ops-panel active" style="margin-top:-20px; padding-top:0; border-top:none;">
-    <div class="paste-area" id="pasteBox">
-        <i class="fas fa-camera"></i> <span id="pasteLabel">CLIQUE OU COLE O COMPROVANTE (CTRL+V)</span>
-        <img id="prevImg" style="display:none; height:50px; margin: 10px auto; border: 1px solid var(--tech-accent);">
-        <input type="file" id="fileInput" style="display:none" accept="image/*">
+    <div class="internal-tabs">
+        <div class="tab-item active" onclick="switchTab('pensao', this)"><i class="fas fa-hand-holding-usd"></i> Pensão Fixa</div>
+        <div class="tab-item extra" onclick="switchTab('extras', this)"><i class="fas fa-shopping-basket"></i> Gastos Extras</div>
     </div>
-</div>
 
-<div class="analytics-box" style="background:var(--bg-panel); padding:20px;">
-    <select id="filtro-ano" class="input-field" style="width:150px; margin-bottom:15px;" onchange="renderizarTabelas()"><option value="todos">TODOS OS ANOS</option></select>
-    
-    <table id="table-pensao" class="db-table active">
-        <thead><tr><th>Referência</th><th>Data Pgto</th><th>Valor</th><th>Doc</th><th>Ação</th></tr></thead>
-        <tbody id="corpo-pensao"></tbody>
-    </table>
+    <div id="panel-pensao" class="ops-panel active">
+        <div class="ops-grid">
+            <div class="input-group"><label>Data</label><input type="date" id="p-data" class="input-field"></div>
+            <div class="input-group"><label>Mês Ref.</label><select id="p-mes" class="input-field"><option>Janeiro</option><option>Fevereiro</option><option>Março</option><option>Abril</option><option>Maio</option><option>Junho</option><option>Julho</option><option>Agosto</option><option>Setembro</option><option>Outubro</option><option>Novembro</option><option>Dezembro</option></select></div>
+            <div class="input-group"><label>Valor (R$)</label><input type="number" id="p-valor" class="input-field" placeholder="0,00"></div>
+            <div class="input-group" style="display:flex; align-items:flex-end;"><button id="btn-save-p" class="btn-main" onclick="registrar('pensao')">Lançar Pensão</button></div>
+        </div>
+    </div>
 
-    <table id="table-extras" class="db-table">
-        <thead><tr><th>Data</th><th>Descrição</th><th>Valor</th><th>Doc</th><th>Ação</th></tr></thead>
-        <tbody id="corpo-extras"></tbody>
-    </table>
+    <div id="panel-extras" class="ops-panel" style="border-color: var(--extra-accent);">
+        <div class="ops-grid">
+            <div class="input-group"><label style="color:var(--extra-accent)">Data</label><input type="date" id="e-data" class="input-field"></div>
+            <div class="input-group" style="grid-column: span 2;"><label style="color:var(--extra-accent)">Descrição do Gasto</label><input type="text" id="e-desc" class="input-field" placeholder="Ex: Farmácia, Vestuário..."></div>
+            <div class="input-group"><label style="color:var(--extra-accent)">Valor (R$)</label><input type="number" id="e-valor" class="input-field" placeholder="0,00"></div>
+            <div class="input-group" style="display:flex; align-items:flex-end; grid-column: span 4;"><button id="btn-save-e" class="btn-main" style="background:var(--extra-accent); width:100%" onclick="registrar('extras')">Registrar Gasto Extra</button></div>
+        </div>
+    </div>
+
+    <div class="ops-panel active" style="margin-top:-20px; padding-top:0; border-top:none;">
+        <div class="paste-area" id="pasteBox">
+            <i class="fas fa-camera"></i> <span id="pasteLabel">CLIQUE OU COLE O COMPROVANTE (CTRL+V)</span>
+            <img id="prevImg" style="display:none; height:50px; margin: 10px auto; border: 1px solid var(--tech-accent);">
+            <input type="file" id="fileInput" style="display:none" accept="image/*">
+        </div>
+    </div>
+
+    <div class="analytics-box" style="background:var(--bg-panel); padding:20px;">
+        <select id="filtro-ano" class="input-field" style="width:150px; margin-bottom:15px;" onchange="renderizarTabelas()"><option value="todos">TODOS OS ANOS</option></select>
+        
+        <table id="table-pensao" class="db-table active">
+            <thead><tr><th>Referência</th><th>Data Pgto</th><th>Valor</th><th>Doc</th><th>Ação</th></tr></thead>
+            <tbody id="corpo-pensao"></tbody>
+        </table>
+
+        <table id="table-extras" class="db-table">
+            <thead><tr><th>Data</th><th>Descrição</th><th>Valor</th><th>Doc</th><th>Ação</th></tr></thead>
+            <tbody id="corpo-extras"></tbody>
+        </table>
+    </div>
 </div>
 
 <script>
@@ -139,6 +157,7 @@
         });
     }
 
+    // CORREÇÃO: Função de compressão para evitar erros de Payload no Google
     function comprimirImagem(file) {
         const reader = new FileReader();
         reader.readAsDataURL(file);
@@ -158,6 +177,7 @@
                 }
                 const ctx = canvas.getContext('2d');
                 ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
+                // Converte para JPEG com qualidade reduzida
                 base64Temp = canvas.toDataURL('image/jpeg', 0.6);
                 
                 document.getElementById('prevImg').src = base64Temp;
@@ -206,6 +226,7 @@
         else { status.innerText = "PENSÃO: PENDENTE (VENCE DIA 10)"; status.style.color = "#f1c40f"; }
     }
 
+    // CORREÇÃO: Remover location.reload e atualizar UI manualmente
     async function registrar(type) {
         const btn = document.getElementById(type === 'pensao' ? 'btn-save-p' : 'btn-save-e');
         const valor = parseFloat(document.getElementById(type === 'pensao' ? 'p-valor' : 'e-valor').value);
@@ -233,6 +254,7 @@
         try {
             await sincronizar();
             
+            // Limpa form e atualiza tabela sem recarregar a página
             document.getElementById(type === 'pensao' ? 'p-valor' : 'e-valor').value = '';
             if(type === 'extras') document.getElementById('e-desc').value = '';
             base64Temp = null;
@@ -242,10 +264,10 @@
             
             renderizarTabelas();
             verificarVencimento();
-            alert("✅ Registro salvo com sucesso!");
+            alert("✅ Registro salvo e sincronizado!");
             
         } catch (erro) {
-            alert("❌ Erro ao sincronizar: " + erro.message);
+            alert("❌ Erro ao sincronizar. Verifique internet.");
         } finally {
             btn.innerText = textoOriginal;
             btn.disabled = false;
@@ -274,20 +296,17 @@
 
     function verImg(src) { document.getElementById('fullImg').src = src; document.getElementById('imgModal').style.display = 'flex'; }
 
-    // --- CORREÇÃO CRÍTICA: Ler antes de Salvar (Merge) ---
     async function sincronizar() {
-        // 1. Baixar o estado atual completo da nuvem
         const res = await fetch(API_URL);
         let dadosNuvem = await res.json();
         
-        // 2. Se a nuvem estiver vazia ou inválida, inicializa objeto vazio
+        // Garante que não quebre se vier vazio
         if (!dadosNuvem || typeof dadosNuvem !== 'object') dadosNuvem = {};
 
-        // 3. Atualizar APENAS as chaves de pensão, mantendo as outras (despesas, eventos, etc) intactas
+        // Merge seguro
         dadosNuvem.pensao = dbPensao;
         dadosNuvem.gastos_extras = dbExtras;
         
-        // 4. Salvar o objeto completo de volta
         await fetch(API_URL, { method: 'POST', mode: 'no-cors', body: JSON.stringify(dadosNuvem) });
     }
 
@@ -297,7 +316,8 @@
             else dbExtras = dbExtras.filter(x => x.id !== id);
             
             renderizarTabelas();
-            try { await sincronizar(); } catch(e) { alert("Erro ao salvar exclusão na nuvem."); }
+            // Salva silenciosamente
+            try { await sincronizar(); } catch(e) {}
         }
     }
 </script>
