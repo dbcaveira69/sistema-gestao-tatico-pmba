@@ -15,7 +15,7 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
 
     <style>
-        /* --- ESTILOS GERAIS --- */
+        /* --- ESTILOS GERAIS (TELA CHEIA) --- */
         :root {
             --bg-body: #121416;
             --bg-panel: #1e2124;
@@ -30,7 +30,6 @@
 
         * { margin: 0; padding: 0; box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
         
-        /* MODO TELA CHEIA ATIVADO */
         body { 
             font-family: 'Roboto', sans-serif; 
             background-color: var(--bg-body); 
@@ -566,7 +565,6 @@
         let currentEventID = null;
         let estadoBot = 0; 
         
-        // Variaveis de Instancia dos gráficos
         let chartRecInstance = null;
         let chartFluxoInstance = null;
         let chartCat = null, chartEvo = null;
@@ -580,7 +578,6 @@
             document.getElementById('ano-selecao').value = anoView;
             atualizarTitulosAno();
 
-            // Populate Selects
             const selMesMeta = document.getElementById('m-mes-meta');
             const selMesFiltro = document.getElementById('filtro-mes');
             const selAnMes = document.getElementById('an-filtro-mes');
@@ -634,7 +631,6 @@
             if(document.getElementById('analise').classList.contains('active')) { renderAnalise(); rotinaBot(); }
         }
 
-        /* --- CORREÇÃO DA AGENDA: Função Mudar Mês --- */
         function mudarMes(delta) {
             dataAtual.setMonth(dataAtual.getMonth() + delta);
             renderAgenda();
@@ -646,9 +642,14 @@
             fetch(API_URL)
             .then(res => res.json())
             .then(data => {
-                if(data && Object.keys(data).length > 0) {
+                if(data) {
                     dados = data;
-                    if(!dados.categorias || dados.categorias.length === 0) {
+                    // --- AUTO-CORREÇÃO DE ESTRUTURA (Evita erro offline) ---
+                    if(!Array.isArray(dados.despesas)) dados.despesas = [];
+                    if(!Array.isArray(dados.eventos)) dados.eventos = [];
+                    if(!dados.ganhos || typeof dados.ganhos !== 'object') dados.ganhos = {};
+                    if(!dados.metas || typeof dados.metas !== 'object') dados.metas = {};
+                    if(!Array.isArray(dados.categorias)) {
                         dados.categorias = [
                             {nome: '🍔 Alimentação', cor: '#d35400'}, {nome: '🚗 Transporte', cor: '#2980b9'}, {nome: '👶 Maitê', cor: '#e84393'},
                             {nome: '🎉 Lazer', cor: '#f1c40f'}, {nome: '👕 Roupa', cor: '#16a085'}, {nome: '💡 Utilidade', cor: '#8e44ad'},
@@ -659,18 +660,18 @@
                     }
                 }
                 
-                // POPULAR O NOVO SELECT DE CATEGORIA
                 const selCatAnalise = document.getElementById('an-filtro-cat');
                 selCatAnalise.innerHTML = '<option value="">🎯 VISÃO GERAL (TODAS)</option>';
-                dados.categorias.forEach(c => {
-                    selCatAnalise.add(new Option(c.nome, c.nome));
-                });
+                dados.categorias.forEach(c => { selCatAnalise.add(new Option(c.nome, c.nome)); });
 
                 if(dados.notas_taticas) document.getElementById('tactical-note-area').value = dados.notas_taticas;
                 if(dados.notas_gerais) document.getElementById('diario-missao').value = dados.notas_gerais;
                 
                 renderizarTudo();
                 rotinaBot(); 
+                
+                // Se corrigiu estrutura, salva para garantir persistência
+                salvarNuvem();
             })
             .catch(err => {
                 console.error(err);
@@ -696,7 +697,6 @@
 
         function renderizarTudo() { renderDespesas(); renderGanhos(); renderAgenda(); renderFluxo(); renderMetas(); renderAnalise(); rotinaBot(); }
 
-        // --- SISTEMA DE CATEGORIAS E GRÁFICOS ---
         function getIconeCategoria(cat) {
             const c = cat.toLowerCase();
             if(c.includes("alimentação")) return '<i class="fas fa-utensils"></i>';
@@ -721,7 +721,6 @@
             return cat ? cat.cor : '#666'; 
         }
 
-        // --- FUNÇÃO ANALISE ATUALIZADA (COM CORREÇÃO DO TEXTO DE DADOS) ---
         function toggleAnFiltros() {
             const tipo = document.getElementById('an-tipo-filtro').value;
             document.getElementById('an-filtro-padrao').style.display = (tipo === 'padrao') ? 'flex' : 'none';
@@ -730,52 +729,39 @@
         }
 
         function renderAnalise() {
-            // Verificar qual modo estamos: GERAL ou CATEGORIA
             const catAlvo = document.getElementById('an-filtro-cat').value;
             const containerGeral = document.getElementById('analise-geral-container');
             const containerCat = document.getElementById('analise-categoria-container');
-
-            // Preparar Filtros de Tempo
             const tipoFiltro = document.getElementById('an-tipo-filtro').value;
             let despesasFiltradas = [];
-            let totalPeriodoGeral = 0; // Para o cálculo de Impacto
+            let totalPeriodoGeral = 0; 
 
             if(tipoFiltro === 'padrao') {
                 const fMes = document.getElementById('an-filtro-mes').value;
                 const fAno = document.getElementById('an-filtro-ano').value;
                 const anoRef = (fAno === 'all') ? null : fAno;
-                
-                // Filtrar despesas (base temporal)
                 dados.despesas.forEach(d => {
                     let matchMes = (fMes === 'all' || d.mes === fMes);
                     let matchAno = (!anoRef || d.data.startsWith(anoRef));
                     if(matchMes && matchAno) despesasFiltradas.push(d);
                 });
                 totalPeriodoGeral = despesasFiltradas.reduce((a,b)=>a+b.valor,0);
-
             } else {
                 const dtIni = document.getElementById('an-data-ini').value;
                 const dtFim = document.getElementById('an-data-fim').value;
                 if(!dtIni || !dtFim) return;
-
                 despesasFiltradas = dados.despesas.filter(d => d.data >= dtIni && d.data <= dtFim);
                 totalPeriodoGeral = despesasFiltradas.reduce((a,b)=>a+b.valor,0);
             }
 
             if (catAlvo === "") {
-                // --- MODO VISÃO GERAL ---
                 containerGeral.style.display = 'block';
                 containerCat.style.display = 'none';
-
                 let totD = totalPeriodoGeral;
                 let totG = 0; 
                 const cats = {};
-
-                despesasFiltradas.forEach(d => {
-                    cats[d.cat] = (cats[d.cat] || 0) + d.valor;
-                });
+                despesasFiltradas.forEach(d => { cats[d.cat] = (cats[d.cat] || 0) + d.valor; });
                 
-                // Recalcular Ganhos (Aproximado pelo filtro)
                 if(tipoFiltro === 'padrao') {
                      const fMes = document.getElementById('an-filtro-mes').value;
                      const fAno = document.getElementById('an-filtro-ano').value;
@@ -793,7 +779,6 @@
                 document.getElementById('an-total-ganhos').innerText=format(totG);
                 document.getElementById('an-saldo').innerText=format(totG-totD);
 
-                // Gráfico Rosca Geral
                 const labels = Object.keys(cats);
                 const dataValues = Object.values(cats);
                 const bgColors = labels.map(l => getCorCategoria(l));
@@ -805,7 +790,6 @@
                     options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } } } 
                 });
 
-                // Gráfico Barras Geral
                 let dataRec = [], dataDesp = [];
                 meses.forEach(m => {
                     let rec=0, desp=0;
@@ -820,7 +804,6 @@
                 if(chartEvo) chartEvo.destroy();
                 chartEvo = new Chart(document.getElementById('chartEvo'), { type: 'bar', data: { labels: meses.map(m=>m.substr(0,3)), datasets: [{label:'Recursos',data:dataRec,backgroundColor:'#8bc34a'}, {label:'Baixas',data:dataDesp,backgroundColor:'#f46a6a'}] }, options: { responsive: true, maintainAspectRatio: false } });
 
-                // --- ATUALIZAÇÃO DO TEXTO (CORREÇÃO) ---
                 let maiorCat = { nome: '', valor: 0 };
                 for (const [cat, val] of Object.entries(cats)) {
                     if (val > maiorCat.valor) maiorCat = { nome: cat, valor: val };
@@ -838,86 +821,44 @@
                 }
                 document.getElementById('analise-detalhada-texto').innerHTML = textoAnalise;
 
-
             } else {
-                // --- MODO CATEGORIA ESPECÍFICA ---
                 containerGeral.style.display = 'none';
                 containerCat.style.display = 'block';
-
                 const despesasAlvo = despesasFiltradas.filter(d => d.cat === catAlvo);
                 const totalAlvo = despesasAlvo.reduce((a,b) => a+b.valor, 0);
-
                 document.getElementById('cat-header-nome').innerHTML = `${getIconeCategoria(catAlvo)} ${catAlvo.toUpperCase()}`;
                 document.getElementById('cat-header-total').innerText = format(totalAlvo);
-
-                const anoGrafico = (tipoFiltro === 'padrao' && document.getElementById('an-filtro-ano').value !== 'all') 
-                                   ? document.getElementById('an-filtro-ano').value : anoView;
-                
-                const evoData = meses.map(m => {
-                    return dados.despesas.filter(d => d.cat === catAlvo && d.mes === m && d.data.startsWith(anoGrafico)).reduce((a,b)=>a+b.valor,0);
-                });
+                const anoGrafico = (tipoFiltro === 'padrao' && document.getElementById('an-filtro-ano').value !== 'all') ? document.getElementById('an-filtro-ano').value : anoView;
+                const evoData = meses.map(m => { return dados.despesas.filter(d => d.cat === catAlvo && d.mes === m && d.data.startsWith(anoGrafico)).reduce((a,b)=>a+b.valor,0); });
 
                 if(chartCatEvoInstance) chartCatEvoInstance.destroy();
                 chartCatEvoInstance = new Chart(document.getElementById('chartCatEvo'), {
                     type: 'line',
-                    data: {
-                        labels: meses.map(m=>m.substr(0,3)),
-                        datasets: [{
-                            label: `Gastos: ${catAlvo}`,
-                            data: evoData,
-                            borderColor: getCorCategoria(catAlvo),
-                            backgroundColor: getCorCategoria(catAlvo),
-                            borderWidth: 3,
-                            pointBackgroundColor: '#1e2124',
-                            pointBorderColor: getCorCategoria(catAlvo),
-                            pointRadius: 4,
-                            tension: 0.3
-                        }]
-                    },
-                    options: {
-                        responsive: true, maintainAspectRatio: false,
-                        scales: { y: { grid: { color: '#333' } }, x: { grid: { display: false } } },
-                        plugins: { legend: { display: true, labels: { color: '#ccc' } } }
-                    }
+                    data: { labels: meses.map(m=>m.substr(0,3)), datasets: [{ label: `Gastos: ${catAlvo}`, data: evoData, borderColor: getCorCategoria(catAlvo), backgroundColor: getCorCategoria(catAlvo), borderWidth: 3, pointBackgroundColor: '#1e2124', pointBorderColor: getCorCategoria(catAlvo), pointRadius: 4, tension: 0.3 }] },
+                    options: { responsive: true, maintainAspectRatio: false, scales: { y: { grid: { color: '#333' } }, x: { grid: { display: false } } }, plugins: { legend: { display: true, labels: { color: '#ccc' } } } }
                 });
 
                 const valorOutros = totalPeriodoGeral - totalAlvo;
                 const pct = totalPeriodoGeral > 0 ? ((totalAlvo / totalPeriodoGeral) * 100).toFixed(1) : 0;
-                
                 document.getElementById('cat-impact-text').innerHTML = `Representa <span style="color:${getCorCategoria(catAlvo)}">${pct}%</span> de todos os gastos do período.`;
 
                 if(chartCatImpactInstance) chartCatImpactInstance.destroy();
                 chartCatImpactInstance = new Chart(document.getElementById('chartCatImpact'), {
                     type: 'doughnut',
-                    data: {
-                        labels: [catAlvo, 'Outros'],
-                        datasets: [{
-                            data: [totalAlvo, valorOutros],
-                            backgroundColor: [getCorCategoria(catAlvo), '#2c3e50'],
-                            borderColor: '#1e2124',
-                            borderWidth: 2
-                        }]
-                    },
-                    options: {
-                        responsive: true, maintainAspectRatio: false, cutout: '70%',
-                        plugins: { legend: { display: true, position: 'bottom', labels: { color: '#888', font: { size: 10 } } } }
-                    }
+                    data: { labels: [catAlvo, 'Outros'], datasets: [{ data: [totalAlvo, valorOutros], backgroundColor: [getCorCategoria(catAlvo), '#2c3e50'], borderColor: '#1e2124', borderWidth: 2 }] },
+                    options: { responsive: true, maintainAspectRatio: false, cutout: '70%', plugins: { legend: { display: true, position: 'bottom', labels: { color: '#888', font: { size: 10 } } } } }
                 });
 
                 const tbDossier = document.getElementById('tbody-cat-dossier');
                 tbDossier.innerHTML = '';
-                if(despesasAlvo.length === 0) {
-                    tbDossier.innerHTML = '<tr><td colspan="3" align="center" style="padding:20px;">Sem registros neste período.</td></tr>';
-                } else {
+                if(despesasAlvo.length === 0) { tbDossier.innerHTML = '<tr><td colspan="3" align="center" style="padding:20px;">Sem registros neste período.</td></tr>'; } 
+                else {
                     despesasAlvo.sort((a,b) => b.data.localeCompare(a.data)); 
-                    despesasAlvo.forEach(d => {
-                        tbDossier.innerHTML += `<tr><td style="color:${getCorCategoria(catAlvo)}; font-weight:bold;">${d.data.split('-').reverse().join('/')}</td><td>${d.desc}</td><td style="text-align:right; font-family:'Courier New';">${format(d.valor)}</td></tr>`;
-                    });
+                    despesasAlvo.forEach(d => { tbDossier.innerHTML += `<tr><td style="color:${getCorCategoria(catAlvo)}; font-weight:bold;">${d.data.split('-').reverse().join('/')}</td><td>${d.desc}</td><td style="text-align:right; font-family:'Courier New';">${format(d.valor)}</td></tr>`; });
                 }
             }
         }
 
-        // --- FUNÇÕES AUXILIARES (MODAIS, ETC) ---
         function abrirModalCategoria() { document.getElementById('modal-nova-categoria').style.display = 'flex'; }
         function salvarNovaCategoria() {
             const nome = document.getElementById('cat-novo-nome').value; const cor = document.getElementById('cat-nova-cor').value;
@@ -1015,46 +956,26 @@
             const grid = document.getElementById('calendar-grid'); 
             const titulo = document.getElementById('cal-titulo'); 
             grid.innerHTML = '';
-            
-            // Configura o ano da visualização
             dataAtual.setFullYear(anoView); 
             const y = dataAtual.getFullYear();
-            const m = dataAtual.getMonth(); // Mês atual da visualização (0-11)
-            
-            // Pega a data REAL de hoje para comparação
+            const m = dataAtual.getMonth(); 
             const realHoje = new Date();
             
             titulo.innerText = `${meses[m]} ${y}`;
-            
-            // Cabeçalho dos dias da semana
-            ['D','S','T','Q','Q','S','S'].forEach(d => {
-                grid.innerHTML += `<div style="text-align:center;font-size:10px;font-weight:bold;color:#666">${d}</div>`;
-            });
+            ['D','S','T','Q','Q','S','S'].forEach(d => { grid.innerHTML += `<div style="text-align:center;font-size:10px;font-weight:bold;color:#666">${d}</div>`; });
             
             const firstDay = new Date(y, m, 1).getDay(); 
             const daysInMonth = new Date(y, m+1, 0).getDate();
             
-            // Dias vazios antes do dia 1
-            for(let i=0; i<firstDay; i++) {
-                grid.innerHTML += `<div style="background:#181a1d"></div>`;
-            }
+            for(let i=0; i<firstDay; i++) { grid.innerHTML += `<div style="background:#181a1d"></div>`; }
             
-            // Loop dos dias do mês
             for(let d=1; d<=daysInMonth; d++) {
                 const dt = `${y}-${String(m+1).padStart(2,'0')}-${String(d).padStart(2,'0')}`;
-                
-                // --- CORREÇÃO: VERIFICAÇÃO DO DIA ATUAL ---
                 const isToday = (d === realHoje.getDate() && m === realHoje.getMonth() && y === realHoje.getFullYear());
-                
-                // Se for hoje, aplica a borda verde e um brilho leve
                 const styleToday = isToday ? 'border: 2px solid var(--tech-accent); box-shadow: inset 0 0 15px rgba(139, 195, 74, 0.2);' : '';
-
                 const evs = dados.eventos.filter(e => e.data === dt); 
                 let html = '';
-                evs.forEach(e => { 
-                    html += `<div class="event-chip" onclick="verDetalhe('${e.id}')">${e.desc.substr(0,10)}</div>`; 
-                });
-                
+                evs.forEach(e => { html += `<div class="event-chip" onclick="verDetalhe('${e.id}')">${e.desc.substr(0,10)}</div>`; });
                 grid.innerHTML += `<div class="day-cell" style="${styleToday}"><span class="day-header" style="${isToday ? 'color:var(--tech-accent); font-weight:bold;':''}">${d}</span>${html}</div>`;
             }
         }
