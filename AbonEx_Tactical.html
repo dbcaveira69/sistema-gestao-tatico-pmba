@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>AbonEx</title>
+    <title>AbonEx Tático</title>
     
     <link rel="icon" href="data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAxMDAgMTAwIj48Y2lyY2xlIGN4PSI1MCIgY3k9IjUwIiByPSI1MCIgZmlsbD0iIzRiNjA0MyIvPjxwYXRoIGQ9Ik01MCA1MCBMNTAgMCBBNTAgNTAgMCAwIDEgMTAwIDUwIFoiIGZpbGw9IiM4YmMzNGEiLz48L3N2Zz4=" type="image/svg+xml">
 
@@ -21,7 +21,6 @@
         }
         * { margin: 0; padding: 0; box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
         
-        /* ALTERAÇÃO: Padding zerado para tela cheia */
         body { 
             font-family: 'Roboto', sans-serif; 
             background: var(--bg-body) radial-gradient(#2c2f33 1px, transparent 1px) 0 0/20px 20px; 
@@ -30,18 +29,10 @@
             padding-bottom: 0; 
         }
 
-        /* ALTERAÇÃO: Container ocupando 100% da tela */
         .container { 
-            width: 100%; 
-            max-width: 100%; 
-            margin: 0; 
-            background: var(--bg-panel); 
-            border: none; 
-            border-radius: 0; 
-            box-shadow: none; 
-            min-height: 100vh; 
-            display: flex; 
-            flex-direction: column; 
+            width: 100%; max-width: 100%; margin: 0; 
+            background: var(--bg-panel); border: none; border-radius: 0; 
+            box-shadow: none; min-height: 100vh; display: flex; flex-direction: column; 
         }
 
         /* HEADER */
@@ -79,7 +70,7 @@
         .btn-check:hover { background: #1a9c4b; border-color: #fff; box-shadow: 0 0 10px rgba(76, 175, 80, 0.4); }
         .btn-pdf { background: #c0392b; color: white; border: 1px solid rgba(255,255,255,0.1); padding: 5px 10px; font-size: 11px; }
         
-        /* PASTE ZONE IMPROVED */
+        /* PASTE ZONE */
         .paste-zone { border: 2px dashed #444; background: #16181b; padding: 20px; text-align: center; color: #888; cursor: pointer; transition: 0.3s; display: flex; flex-direction: column; align-items: center; gap: 10px; position: relative; }
         .paste-zone:hover { border-color: var(--tech-accent); color: var(--tech-accent); background: rgba(139, 195, 74, 0.05); }
         .paste-zone:focus { outline: 2px solid var(--tech-accent); border-color: transparent; }
@@ -93,8 +84,6 @@
         
         .badge { padding: 4px 8px; border-radius: 2px; font-size: 10px; font-weight: 700; text-transform: uppercase; color: white; display: inline-block; }
         .badge-pago { background: var(--status-pago); } .badge-pendente { background: var(--status-pendente); }
-        
-        /* City Badges */
         .city-badge { font-weight: bold; padding: 3px 8px; border-radius: 3px; font-size: 11px; text-transform: uppercase; color: #fff; text-shadow: 1px 1px 1px rgba(0,0,0,0.5); letter-spacing: 0.5px; }
 
         .dashboard-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 20px; margin-bottom: 30px; }
@@ -108,21 +97,16 @@
         .form-control { width: 100%; padding: 10px; border: 1px solid #444; border-radius: 2px; font-size: 14px; background: #121416; color: white; }
         .form-control:focus { outline: none; border-color: var(--tech-accent); }
         
-        /* BOT GESTOR */
         .bot-gestor-box { background: #16181b; border: 1px solid var(--primary); border-left: 5px solid var(--tech-accent); padding: 20px; margin-bottom: 30px; display: flex; gap: 20px; align-items: center; box-shadow: 0 0 15px rgba(0,0,0,0.3); }
         .bot-avatar { width: 50px; height: 50px; background: var(--primary); color: white; border-radius: 2px; display: flex; justify-content: center; align-items: center; font-size: 24px; flex-shrink: 0; box-shadow: 0 0 10px rgba(139, 195, 74, 0.5); }
         .bot-message-area { font-family: 'Courier New', monospace; font-size: 14px; color: #ccc; flex: 1; }
         .bot-highlight { color: var(--tech-accent); font-weight: bold; }
         .bot-alert { color: var(--status-pendente); font-weight: bold; }
-
         .notepad-area { width: 100%; height: 300px; background: #121416; border: 1px solid #444; color: var(--tech-accent); padding: 15px; font-family: 'Courier New', monospace; resize: none; }
 
-        /* --- ANÁLISE / PROGRESSO --- */
-        .analysis-filters { display: flex; gap: 15px; margin-bottom: 20px; background: #181a1d; padding: 15px; border-radius: 4px; border: 1px solid var(--border); align-items: center; flex-wrap: wrap; }
         .charts-wrapper { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 30px; margin-top: 20px; }
         .chart-box { background: #16181b; padding: 20px; border-radius: 4px; border: 1px solid #333; position: relative; }
         .chart-title { font-family: 'Rajdhani'; color: var(--tech-accent); font-size: 18px; font-weight: bold; margin-bottom: 15px; text-transform: uppercase; border-bottom: 1px solid #333; padding-bottom: 10px; }
-        
         .doughnut-container { height: 250px; position: relative; display: flex; justify-content: center; }
         .doughnut-center-text { position: absolute; top: 55%; left: 50%; transform: translate(-50%, -50%); text-align: center; pointer-events: none; }
         .dct-value { font-size: 32px; font-weight: bold; color: var(--text-main); line-height: 1; }
@@ -134,16 +118,16 @@
         .progress-fill { height: 100%; background: linear-gradient(90deg, var(--primary), var(--tech-accent)); width: 0%; transition: width 0.5s ease; position: relative; }
         .progress-text { position: absolute; right: 10px; top: 0; line-height: 25px; font-size: 12px; font-weight: bold; color: white; text-shadow: 1px 1px 2px black; }
 
-        /* RELATÓRIO ANALÍTICO - ORDENÁVEL */
+        /* RELATÓRIO */
+        .analysis-filters { display: flex; gap: 15px; margin-bottom: 20px; background: #181a1d; padding: 15px; border-radius: 4px; border: 1px solid var(--border); align-items: center; flex-wrap: wrap; }
         .report-table th { background: #222; color: #ccc; font-size: 11px; text-transform: uppercase; cursor: pointer; user-select: none; transition: 0.2s; }
         .report-table th:hover { background: #333; color: var(--tech-accent); }
-        .report-table th i { margin-left: 5px; opacity: 0.5; }
         .report-table td { font-size: 12px; border-bottom: 1px solid #333; }
         .turn-badge { font-size: 10px; padding: 2px 6px; border-radius: 3px; font-weight: bold; }
         .turn-day { background: #f39c12; color: #000; }
         .turn-night { background: #2c3e50; color: #fff; border: 1px solid #555; }
-        
-        /* --- CALCULADORA TÁTICA --- */
+
+        /* CALCULADORA */
         .tactical-tool-panel { position: absolute; top: 80px; width: 320px; background: #1e2124; border: 2px solid var(--tech-accent); z-index: 100; display: none; box-shadow: 0 10px 40px rgba(0,0,0,0.9); padding: 20px; border-radius: 8px; }
         .tool-header { display: flex; justify-content: space-between; margin-bottom: 15px; border-bottom: 1px solid #444; padding-bottom: 10px; color: var(--tech-accent); font-family: 'Rajdhani'; font-size: 18px; text-transform: uppercase; font-weight: bold; letter-spacing: 1px; }
         .calc-display { width: 100%; height: 70px; background: #08090a; color: var(--tech-accent); font-family: 'Courier New', monospace; text-align: right; padding: 15px; margin-bottom: 15px; border: 1px solid #333; border-radius: 4px; font-size: 32px; font-weight: bold; text-shadow: 0 0 8px rgba(139, 195, 74, 0.4); }
@@ -155,17 +139,15 @@
         .calc-btn.clear { background: #5a1a1a; color: #ff9999; }
         .calc-btn.equal { background: var(--tech-accent); color: black; box-shadow: 0 4px 0 #558b2f; }
 
-        /* --- CALCULADORA HE (AB) --- */
         .he-result-box { background: #16181b; padding: 20px; margin-top: 20px; border-left: 4px solid var(--tech-accent); display: none; }
         .he-row-result { display: flex; justify-content: space-between; padding: 8px 0; border-bottom: 1px solid #333; }
         .he-total-liq { background: rgba(139, 195, 74, 0.1); padding: 15px; border: 1px solid var(--tech-accent); color: var(--tech-accent); font-size: 20px; font-weight: bold; text-align: center; margin-top: 15px; }
         .negative { color: #ff6b6b; }
 
-        /* ================= DOCUMENTOS (IMPRESSÃO) ================= */
+        /* DOCS */
         .doc-viewer-container { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: #525659; z-index: 5000; overflow-y: auto; }
         .doc-viewer-container.visible { display: block; }
         .doc-toolbar { position: sticky; top: 0; width: 100%; height: 60px; background: #2b3035; border-bottom: 1px solid #111; display: flex; justify-content: center; align-items: center; gap: 20px; box-shadow: 0 2px 10px rgba(0,0,0,0.3); z-index: 5001; }
-        
         .toolbar-btn { background: #444; color: white; padding: 8px 20px; border-radius: 4px; font-family: 'Roboto'; font-weight: bold; font-size: 14px; cursor: pointer; border: 1px solid #555; display: flex; align-items: center; gap: 8px; transition: 0.2s; }
         .toolbar-btn:hover { background: #555; transform: translateY(-2px); }
         .toolbar-btn.print { background: var(--primary); border-color: var(--primary-dark); }
@@ -209,8 +191,7 @@
             <div class="form-row">
                 <div class="form-group">
                     <label class="form-label">Cidade</label>
-                    <select id="m-cidade" class="form-control" onchange="verificarCidade(this)">
-                        </select>
+                    <select id="m-cidade" class="form-control" onchange="verificarCidade(this)"></select>
                 </div>
                 <div class="form-group"><label class="form-label">Data</label><input type="date" id="m-data" class="form-control"></div>
             </div>
@@ -254,7 +235,7 @@
                 <label class="form-label">Anexo de Escala (PDF OFICIAL)</label>
                 <input type="file" id="m-pdf-escala" class="form-control" accept="application/pdf" style="margin-bottom:5px; border-color:#d35400;">
                 <div style="display:flex; justify-content:space-between;">
-                    <small style="color:#d35400; font-size:10px;">*Recomendado anexar PDF somente se < 3MB para não pesar o banco.</small>
+                    <small style="color:#d35400; font-size:10px;">*Recomendado anexar PDF somente se < 3MB.</small>
                     <button id="btn-remove-pdf" class="remove-btn-mini" onclick="removerPdf()">REMOVER PDF</button>
                 </div>
             </div>
@@ -302,7 +283,7 @@
             <div class="header-left-block">
                 <div class="title-line">
                     <i class="fas fa-crosshairs main-icon"></i>
-                    <span class="logo-title">GestorPro - AbonEx <span style="font-size:14px; color:#666">V11.2 TACTICAL</span></span>
+                    <span class="logo-title">GestorPro - AbonEx <span style="font-size:14px; color:#666">V11.3 TACTICAL</span></span>
                 </div>
                 <div class="user-id-line">
                     <i class="fas fa-skull peto-skull"></i> SD PM D. BARRETO - Mat: 92.137.431
@@ -384,7 +365,6 @@
 
         <div id="analise" class="content">
             <h2 class="section-title" style="color:var(--tech-accent);">Análise Operacional</h2>
-            
             <div class="analysis-filters">
                 <i class="fas fa-filter" style="color:var(--tech-accent)"></i>
                 <span class="filter-label">FILTRO GRÁFICOS:</span>
@@ -567,7 +547,12 @@
     </div>
 
     <script>
-        /* --- VARIÁVEIS GLOBAIS --- */
+        // =========================================================
+        // ⚠️ AREA DE CONFIGURAÇÃO CRÍTICA ⚠️
+        // COLE SUA NOVA URL DO GOOGLE SCRIPT AQUI ABAIXO:
+        const API_URL = "https://script.google.com/macros/s/AKfycbxiVk0YLmZJp9ffSm6lvQw4xhYA-cwdWrHLDao63c2WyVCL0naRqC8v-LIfYN0JlGGo/exec"; 
+        // =========================================================
+
         let dbExtras=[], cidades=["Heliópolis","Cícero Dantas","Nova Soure","Ribeira do Pombal","Banzaê","Cipó","Fátima","Adustina","Paripiranga","Ribeira do Amparo"];
         let tempAnexoBase64=null;
         let tempPdfBase64=null;
@@ -583,7 +568,6 @@
             "Paripiranga": "#2980b9", "Ribeira do Amparo": "#8bc34a"
         };
         const defaultCityColor = "#95a5a6";
-        const API_URL = "https://script.google.com/macros/s/AKfycbxT8L82ugPXRB_Hc4spiDEkW5h7dZJvjaH5e8N8M144H7ANeiCvyHmqrwGfKSg9vJ5yDA/exec"; 
 
         const tabelaValoresPM = {
             'CEL PM': { he: [113.29, 56.54], vd: [67.94, 81.48] },
@@ -607,10 +591,7 @@
             setInterval(atualizarHora,1000); atualizarHora();
             setInterval(botRotinaGestor, 8000); 
             if(localStorage.getItem('tactical_notepad')) document.getElementById('notepad').value=localStorage.getItem('tactical_notepad');
-            
-            setupGlobalPaste(); // Novo sistema de paste
-            
-            // Listener PDF
+            setupGlobalPaste();
             document.getElementById('m-pdf-escala').addEventListener('change', function(e){
                 if (this.files && this.files[0]) {
                     const reader = new FileReader();
@@ -622,6 +603,81 @@
                 }
             });
         };
+
+        // --- SISTEMA DE SINCRONIZAÇÃO BLINDADA (SAFE SYNC) ---
+        async function sincronizarDadosSeguro(forcarUpload = false) {
+            const statusDiv = document.getElementById('sync-status');
+            statusDiv.innerHTML = '<i class="fas fa-circle-notch fa-spin"></i> SINCRONIZANDO...';
+            statusDiv.style.color = '#ffc107';
+
+            try {
+                // PASSO 1: BAIXAR DADOS DA NUVEM
+                const res = await fetch(API_URL);
+                if (!res.ok) throw new Error("Erro HTTP: " + res.status);
+                const nuvemRaw = await res.json();
+                let dadosNuvem = [];
+                
+                if (nuvemRaw && nuvemRaw.abonos_extras) {
+                    dadosNuvem = nuvemRaw.abonos_extras;
+                }
+
+                // PASSO 2: MESCLAGEM INTELIGENTE (MERGE)
+                const mapaUnificado = new Map();
+
+                // A. Nuvem primeiro
+                dadosNuvem.forEach(item => {
+                    mapaUnificado.set(String(item.id), item);
+                });
+
+                // B. Local depois (preserva edições recentes offline)
+                dbExtras.forEach(item => {
+                    mapaUnificado.set(String(item.id), item);
+                });
+
+                const listaFinal = Array.from(mapaUnificado.values());
+
+                // PASSO 3: ATUALIZAR A TELA E O LOCALSTORAGE
+                dbExtras = listaFinal;
+                
+                // Sanitização
+                dbExtras.forEach(item => { 
+                    if(!item.periodo) item.periodo = "DIURNO"; 
+                    if(!item.horas) item.horas = 8; 
+                });
+
+                salvarLocal(); 
+                renderTable(); 
+
+                // PASSO 4: ENVIAR DE VOLTA (SÓ SE NECESSÁRIO)
+                if (forcarUpload || dbExtras.length > dadosNuvem.length) {
+                    statusDiv.innerHTML = '<i class="fas fa-arrow-up"></i> SALVANDO...';
+                    
+                    const payload = { abonos_extras: dbExtras };
+                    
+                    await fetch(API_URL, {
+                        method: 'POST',
+                        mode: 'no-cors',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify(payload)
+                    });
+                    
+                    statusDiv.innerHTML = '<i class="fas fa-check-double"></i> SINCRONIZADO';
+                    statusDiv.style.color = '#8bc34a';
+                } else {
+                    statusDiv.innerHTML = '<i class="fas fa-wifi"></i> CONECTADO';
+                    statusDiv.style.color = '#8bc34a';
+                }
+
+            } catch (erro) {
+                console.error("Erro no Safe Sync:", erro);
+                statusDiv.innerHTML = '<i class="fas fa-exclamation-triangle"></i> OFFLINE';
+                statusDiv.style.color = '#e53e3e';
+            }
+        }
+
+        // Wrappers para compatibilidade
+        function carregarNuvem() { sincronizarDadosSeguro(false); }
+        function salvarNuvem() { sincronizarDadosSeguro(true); }
 
         function atualizarHora(){ const h=new Date(); const s=h.toLocaleDateString('pt-BR',{weekday:'long',year:'numeric',month:'long',day:'numeric'}); document.getElementById('live-datetime').innerText=s.charAt(0).toUpperCase()+s.slice(1)+", "+h.toLocaleTimeString('pt-BR'); }
 
@@ -638,7 +694,7 @@
             let msgs = [
                 `<span class="bot-highlight">STATUS FINANCEIRO:</span> Você tem <span class="bot-alert">${toBRL(pendente)}</span> pendentes.`,
                 `<strong>BIZU TÁTICO:</strong> Mantenha o padrão.`,
-                `<strong>SISTEMA:</strong> Operando em v10 (Legacy) para integridade.`
+                `<strong>SISTEMA:</strong> Safe Sync Ativado.`
             ];
             if(horasMes >= 60) msgs.unshift(`<span style="color:#e53e3e;">🚨 ALERTA:</span> ${horasMes}h atingidas!`);
             const msgBox = document.getElementById('bot-msg');
@@ -658,28 +714,6 @@
         }
         function salvarLocal(){ localStorage.setItem('db_extras_v10',JSON.stringify(dbExtras)); atualizarFiltroAno(); }
 
-        async function carregarNuvem(forcar=false) {
-            const statusDiv = document.getElementById('sync-status');
-            statusDiv.innerHTML = '<i class="fas fa-circle-notch fa-spin"></i> BUSCANDO...'; statusDiv.style.color = '#ffc107'; 
-            try {
-                const res = await fetch(API_URL); const data = await res.json();
-                if(data) { dadosNuvemCache = data; statusDiv.innerHTML = '<i class="fas fa-wifi"></i> CONECTADO'; statusDiv.style.color = '#8bc34a'; }
-            } catch (err) { statusDiv.innerHTML = '<i class="fas fa-exclamation-triangle"></i> OFFLINE'; statusDiv.style.color = '#e53e3e'; }
-        }
-
-        async function salvarNuvem() {
-            const statusDiv = document.getElementById('sync-status');
-            statusDiv.innerHTML = '<i class="fas fa-circle-notch fa-spin"></i> SALVANDO...'; statusDiv.style.color = '#ff9800';
-            try {
-                const resGet = await fetch(API_URL); let currentCloudData = await resGet.json();
-                if(!currentCloudData || typeof currentCloudData !== 'object') currentCloudData = {};
-                const abonosClean = dbExtras.map(item => ({ ...item, anexo: item.anexo ? "COM_ANEXO_LOCAL" : "", pdfEscala: item.pdfEscala ? "COM_PDF_LOCAL" : "" }));
-                currentCloudData.abonos_extras = abonosClean;
-                await fetch(API_URL, { method: 'POST', mode: 'no-cors', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(currentCloudData) });
-                setTimeout(() => { statusDiv.innerHTML = '<i class="fas fa-wifi"></i> SALVO'; statusDiv.style.color = '#8bc34a'; }, 1000);
-            } catch (error) { statusDiv.innerHTML = '<i class="fas fa-times"></i> ERRO SAVE'; statusDiv.style.color = '#e53e3e'; }
-        }
-
         /* --- UPLOAD LOGIC --- */
         function triggerFileSelect() { document.getElementById('input-paste-file').click(); }
         
@@ -696,12 +730,9 @@
             }
         }
 
-        // Global Paste Listener (Focus independent)
         function setupGlobalPaste() {
             document.addEventListener('paste', function(e) {
-                // Só processa se o modal estiver aberto
                 if(document.getElementById('modal').style.display !== 'flex') return;
-
                 const items = (e.clipboardData || e.originalEvent.clipboardData).items;
                 for (let index in items) {
                     const item = items[index];
@@ -725,7 +756,7 @@
             document.getElementById('paste-preview-img').src = '';
             document.getElementById('paste-preview-img').style.display = 'none';
             document.getElementById('btn-remove-img').style.display = 'none';
-            document.getElementById('input-paste-file').value = ''; // Limpa input file
+            document.getElementById('input-paste-file').value = ''; 
         }
 
         function removerPdf() {
@@ -822,7 +853,6 @@
         }
 
         function abrirModal(id=null){
-            // Reset
             removerImagem(); removerPdf();
             document.getElementById('edit-id').value = '';
             document.getElementById('m-valor').value = ''; document.getElementById('m-obs').value = ''; document.getElementById('m-horas').value = '8'; document.getElementById('m-periodo').value = 'DIURNO'; document.getElementById('m-tipo').value = 'H.E'; document.getElementById('m-natureza').value = 'VOLUNTÁRIO'; document.getElementById('m-status').value = 'A RECEBER';
@@ -893,7 +923,6 @@
         function baixarPDF(base64, nome) { const link = document.createElement('a'); link.href = base64; link.download = `ESCALA_${nome}.pdf`; link.click(); }
         function limparBase(){ if(confirm("RESETAR TUDO?")){ localStorage.removeItem('db_extras_v10'); dbExtras = []; salvarNuvem(); location.reload(); } }
         
-        /* --- CALCULADORA HE --- */
         function calcularHorasOficial() {
             const posto = document.getElementById('he-posto').value;
             const heNormal = parseFloat(document.getElementById('he-normal').value) || 0; const heNoturna = parseFloat(document.getElementById('he-noturna').value) || 0; const vdNormal = parseFloat(document.getElementById('vd-normal').value) || 0; const vdNoturno = parseFloat(document.getElementById('vd-noturno').value) || 0;
@@ -905,7 +934,6 @@
         function calcClear() { document.getElementById('calc-display').value = ''; }
         function calcResult() { try { document.getElementById('calc-display').value = eval(document.getElementById('calc-display').value); } catch(e) { document.getElementById('calc-display').value = 'ERRO'; } }
 
-        /* --- DOCS --- */
         function setDocDate() { const h=new Date(); const m=["Janeiro","Fevereiro","Março","Abril","Maio","Junho","Julho","Agosto","Setembro","Outubro","Novembro","Dezembro"]; document.querySelectorAll('.doc-dia-hoje').forEach(e=>e.innerText=h.getDate()); document.querySelectorAll('.doc-mes-hoje').forEach(e=>e.innerText=m[h.getMonth()]); document.querySelectorAll('.doc-ano-hoje').forEach(e=>e.innerText=h.getFullYear()); }
         function gerarAbono() { document.getElementById('doc-a-nome').innerText = document.getElementById('a-nome').value.toUpperCase(); document.getElementById('doc-a-mat').innerText = document.getElementById('a-mat').value; document.getElementById('doc-a-servico').innerText = document.getElementById('a-servico').value.toUpperCase(); document.getElementById('doc-a-data').innerText = document.getElementById('a-data').value.split('-').reverse().join('/'); document.getElementById('doc-a-h1').innerText = document.getElementById('a-h1').value; document.getElementById('doc-a-h2').innerText = document.getElementById('a-h2').value; document.getElementById('doc-a-substituto').innerText = document.getElementById('a-substituto').value.toUpperCase(); document.getElementById('doc-a-mat-sub').innerText = document.getElementById('a-mat-sub').value; ['part','est','doenca','outro'].forEach(k=>document.getElementById('chk-a-'+k).innerText=''); document.getElementById('chk-a-'+document.getElementById('a-motivo').value).innerText='X'; setDocDate(); document.getElementById('view-abono').classList.add('visible'); }
         function gerarPermuta() { document.getElementById('doc-p-nome').innerText = document.getElementById('p-nome').value.toUpperCase(); document.getElementById('doc-p-mat').innerText = document.getElementById('p-mat').value; document.getElementById('doc-p-servico1').innerText = document.getElementById('p-servico1').value.toUpperCase(); document.getElementById('doc-p-data1').innerText = document.getElementById('p-data1').value.split('-').reverse().join('/'); document.getElementById('doc-p-h1a').innerText = document.getElementById('p-h1a').value; document.getElementById('doc-p-h1b').innerText = document.getElementById('p-h1b').value; document.getElementById('doc-p-substituto').innerText = document.getElementById('p-substituto').value.toUpperCase(); document.getElementById('doc-p-mat-sub').innerText = document.getElementById('p-mat-sub').value; document.getElementById('doc-p-servico2').innerText = document.getElementById('p-servico2').value.toUpperCase(); document.getElementById('doc-p-data2').innerText = document.getElementById('p-data2').value.split('-').reverse().join('/'); document.getElementById('doc-p-h2a').innerText = document.getElementById('p-h2a').value; document.getElementById('doc-p-h2b').innerText = document.getElementById('p-h2b').value; setDocDate(); document.getElementById('view-permuta').classList.add('visible'); }
@@ -918,4 +946,3 @@
     </script>
 </body>
 </html>
-
