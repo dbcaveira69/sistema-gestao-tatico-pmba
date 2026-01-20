@@ -54,7 +54,8 @@
         .modal { position: fixed; inset: 0; background: rgba(0,0,0,0.95); display: none; justify-content: center; align-items: center; z-index: 9999; }
         .modal img { max-width: 90%; max-height: 90%; border: 2px solid var(--tech-accent); }
 
-        .btn-main { background: var(--primary); color: #fff; border: none; padding: 12px 25px; font-family: 'Rajdhani'; font-weight: bold; cursor: pointer; text-transform: uppercase; }
+        .btn-main { background: var(--primary); color: #fff; border: none; padding: 12px 25px; font-family: 'Rajdhani'; font-weight: bold; cursor: pointer; text-transform: uppercase; transition: 0.2s; }
+        .btn-main:disabled { background: #333 !important; color: #888; cursor: not-allowed; }
     </style>
 </head>
 <body>
@@ -82,7 +83,7 @@
         <div class="input-group"><label>Data</label><input type="date" id="p-data" class="input-field"></div>
         <div class="input-group"><label>Mês Ref.</label><select id="p-mes" class="input-field"><option>Janeiro</option><option>Fevereiro</option><option>Março</option><option>Abril</option><option>Maio</option><option>Junho</option><option>Julho</option><option>Agosto</option><option>Setembro</option><option>Outubro</option><option>Novembro</option><option>Dezembro</option></select></div>
         <div class="input-group"><label>Valor (R$)</label><input type="number" id="p-valor" class="input-field" placeholder="0,00"></div>
-        <div class="input-group" style="display:flex; align-items:flex-end;"><button class="btn-main" onclick="registrar('pensao')">Lançar Pensão</button></div>
+        <div class="input-group" style="display:flex; align-items:flex-end;"><button id="btn-save-p" class="btn-main" onclick="registrar('pensao')">Lançar Pensão</button></div>
     </div>
 </div>
 
@@ -91,7 +92,7 @@
         <div class="input-group"><label style="color:var(--extra-accent)">Data</label><input type="date" id="e-data" class="input-field"></div>
         <div class="input-group" style="grid-column: span 2;"><label style="color:var(--extra-accent)">Descrição do Gasto</label><input type="text" id="e-desc" class="input-field" placeholder="Ex: Farmácia, Vestuário..."></div>
         <div class="input-group"><label style="color:var(--extra-accent)">Valor (R$)</label><input type="number" id="e-valor" class="input-field" placeholder="0,00"></div>
-        <div class="input-group" style="display:flex; align-items:flex-end; grid-column: span 4;"><button class="btn-main" style="background:var(--extra-accent); width:100%" onclick="registrar('extras')">Registrar Gasto Extra</button></div>
+        <div class="input-group" style="display:flex; align-items:flex-end; grid-column: span 4;"><button id="btn-save-e" class="btn-main" style="background:var(--extra-accent); width:100%" onclick="registrar('extras')">Registrar Gasto Extra</button></div>
     </div>
 </div>
 
@@ -129,23 +130,47 @@
 
     function setupPaste() {
         document.getElementById('pasteBox').onclick = () => document.getElementById('fileInput').click();
-        document.getElementById('fileInput').onchange = e => lerArquivo(e.target.files[0]);
+        document.getElementById('fileInput').onchange = e => {
+            if(e.target.files[0]) comprimirImagem(e.target.files[0]);
+        };
         window.addEventListener('paste', e => {
             const item = Array.from(e.clipboardData.items).find(x => x.type.indexOf('image') !== -1);
-            if (item) lerArquivo(item.getAsFile());
+            if (item) comprimirImagem(item.getAsFile());
         });
     }
 
-    function lerArquivo(file) {
-        if (!file) return;
+    // CORREÇÃO: Função para comprimir imagem e evitar payload gigante
+    function comprimirImagem(file) {
         const reader = new FileReader();
-        reader.onload = e => {
-            base64Temp = e.target.result;
-            document.getElementById('prevImg').src = base64Temp;
-            document.getElementById('prevImg').style.display = 'block';
-            document.getElementById('pasteLabel').innerText = "COMPROVANTE CARREGADO!";
-        };
         reader.readAsDataURL(file);
+        reader.onload = event => {
+            const img = new Image();
+            img.src = event.target.result;
+            img.onload = () => {
+                const canvas = document.createElement('canvas');
+                // Reduz resolução máxima para 800px para economizar espaço
+                const MAX_WIDTH = 800; 
+                const scale = MAX_WIDTH / img.width;
+                if (scale < 1) {
+                    canvas.width = MAX_WIDTH;
+                    canvas.height = img.height * scale;
+                } else {
+                    canvas.width = img.width;
+                    canvas.height = img.height;
+                }
+                
+                const ctx = canvas.getContext('2d');
+                ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
+                
+                // Converte para JPEG com qualidade 0.6 (reduz drasticamente o tamanho do base64)
+                base64Temp = canvas.toDataURL('image/jpeg', 0.6);
+                
+                document.getElementById('prevImg').src = base64Temp;
+                document.getElementById('prevImg').style.display = 'block';
+                document.getElementById('pasteLabel').innerText = "IMAGEM PRONTA P/ SALVAR!";
+                document.getElementById('pasteLabel').style.color = "var(--tech-accent)";
+            }
+        }
     }
 
     function switchTab(type, btn) {
@@ -186,9 +211,16 @@
         else { status.innerText = "PENSÃO: PENDENTE (VENCE DIA 10)"; status.style.color = "#f1c40f"; }
     }
 
+    // CORREÇÃO: Função de salvar otimizada (sem reload e com feedback)
     async function registrar(type) {
+        const btn = document.getElementById(type === 'pensao' ? 'btn-save-p' : 'btn-save-e');
         const valor = parseFloat(document.getElementById(type === 'pensao' ? 'p-valor' : 'e-valor').value);
         if(!valor) return alert("Defina o valor.");
+
+        // Bloqueia botão e muda texto
+        const textoOriginal = btn.innerText;
+        btn.innerText = "SALVANDO... AGUARDE";
+        btn.disabled = true;
 
         const registro = {
             id: Date.now(),
@@ -205,8 +237,27 @@
             dbExtras.push(registro);
         }
 
-        await sincronizar();
-        location.reload(); 
+        try {
+            await sincronizar();
+            
+            // Limpa form e atualiza tabela sem reload
+            document.getElementById(type === 'pensao' ? 'p-valor' : 'e-valor').value = '';
+            if(type === 'extras') document.getElementById('e-desc').value = '';
+            base64Temp = null;
+            document.getElementById('prevImg').style.display = 'none';
+            document.getElementById('pasteLabel').innerText = "CLIQUE OU COLE O COMPROVANTE (CTRL+V)";
+            document.getElementById('pasteLabel').style.color = "#666";
+            
+            renderizarTabelas();
+            verificarVencimento();
+            alert("✅ Registro salvo com sucesso!");
+            
+        } catch (erro) {
+            alert("❌ Erro ao sincronizar: " + erro.message);
+        } finally {
+            btn.innerText = textoOriginal;
+            btn.disabled = false;
+        }
     }
 
     function renderizarTabelas() {
@@ -232,18 +283,30 @@
     function verImg(src) { document.getElementById('fullImg').src = src; document.getElementById('imgModal').style.display = 'flex'; }
 
     async function sincronizar() {
-        const res = await fetch(API_URL);
-        let dados = await res.json();
-        dados.pensao = dbPensao;
-        dados.gastos_extras = dbExtras;
+        // Envia o banco de dados completo atualizado
+        const dados = {
+            pensao: dbPensao,
+            gastos_extras: dbExtras
+        };
+        // POST com no-cors (não retornará resposta legível, mas salva)
         await fetch(API_URL, { method: 'POST', mode: 'no-cors', body: JSON.stringify(dados) });
     }
 
-    function excluir(id, type) {
-        if(confirm("Excluir?")) {
+    // CORREÇÃO: Excluir otimizado
+    async function excluir(id, type) {
+        if(confirm("Confirmar exclusão?")) {
             if(type === 'pensao') dbPensao = dbPensao.filter(x => x.id !== id);
             else dbExtras = dbExtras.filter(x => x.id !== id);
-            sincronizar().then(() => location.reload());
+            
+            // Renderiza imediatamente para parecer rápido
+            renderizarTabelas();
+            
+            // Sincroniza em segundo plano
+            try {
+                await sincronizar();
+            } catch(e) {
+                alert("Erro ao salvar exclusão na nuvem.");
+            }
         }
     }
 </script>
