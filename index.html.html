@@ -260,6 +260,11 @@
                 <span>REINICIAR</span>
             </button>
 
+            <button class="nav-btn" onclick="triggerBackup()">
+                <i class="fas fa-download" style="color: #f39c12;"></i>
+                <span>BACKUP COMPLETO</span>
+            </button>
+
             </div>
 
         <div class="system-status">
@@ -316,6 +321,17 @@
             setTimeout(() => { loader.style.display = 'none'; }, 500);
         }
 
+        // --- FUNÇÃO PARA ACIONAR O BACKUP DO IFRAME ---
+        function triggerBackup() {
+            const iframe = document.getElementById('app-frame');
+            // Verifica se o iframe carregou e se tem a função de backup exposta (definida no GestorProTatico.html)
+            if(iframe && iframe.contentWindow && iframe.contentWindow.gerarBackupCompleto) {
+                iframe.contentWindow.gerarBackupCompleto();
+            } else {
+                alert("Erro: Certifique-se de que o GESTOR PRO está aberto na tela principal para realizar o backup.");
+            }
+        }
+
         setInterval(() => {
             const now = new Date();
             document.getElementById('clock').innerText = now.toLocaleTimeString('pt-BR');
@@ -327,8 +343,3 @@
     </script>
 </body>
 </html>
-
-
-
-
-
