@@ -454,6 +454,20 @@
     function formatDate(d) { return d.split('-').reverse().join('/'); }
     function getColor(c) { return c === 'banco' ? '#f46a6a' : '#3498db'; }
 
+    // --- FUNÇÃO DE BACKUP INTEGRADO AO INDEX ---
+    window.gerarBackupCompleto = function() {
+        const backupObj = dadosGlobal.veiculo ? dadosGlobal : { veiculo: veiculoData };
+        const jsonDados = JSON.stringify(backupObj, null, 2);
+        const blob = new Blob([jsonDados], { type: 'application/json' });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = `BACKUP_VTR_${new Date().toISOString().slice(0,10)}.json`;
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+        URL.revokeObjectURL(url);
+    };
 </script>
 </body>
 </html>
