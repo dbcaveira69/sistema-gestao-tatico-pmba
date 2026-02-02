@@ -740,7 +740,7 @@
         yearData.forEach(d => { let mIndex = parseInt(d.data.split('-')[1]) - 1; let h = parseFloat(d.horas || 0); if(d.natureza === 'ABONO') abonoHours[mIndex] += h; else extraHours[mIndex] += h; });
         const ctxComp = document.getElementById('comparisonChart').getContext('2d');
         if(comparisonChart) comparisonChart.destroy();
-        comparisonChart = new Chart(ctxComp, { type: 'bar', data: { labels: ['Jan','Fev','Mar','Abr','Mai','Jun','Jul','Ago','Set','Out','Nov','Dez'], datasets: [ { label: 'Extras (h)', data: extraHours, backgroundColor: '#8bc34a', borderRadius: 4 }, { label: 'Abonos (h)', data: abonoHours, backgroundColor: '#e53e3e', borderRadius: 4 } ] }, options: { responsive: true, maintainAspectRatio: false, scales: { y: { beginAtZero: true, grid: { color: '#333' }, ticks: { color: '#999' } }, x: { grid: { display: false }, ticks: { color: '#ccc' } } }, plugins: { legend: { labels: { color: '#ccc' } } } } } });
+        comparisonChart = new Chart(ctxComp, { type: 'bar', data: { labels: ['Jan','Fev','Mar','Abr','Mai','Jun','Jul','Ago','Set','Out','Nov','Dez'], datasets: [ { label: 'Extras (h)', data: extraHours, backgroundColor: '#8bc34a', borderRadius: 4 }, { label: 'Abonos (h)', data: abonoHours, backgroundColor: '#e53e3e', borderRadius: 4 } ] }, options: { responsive: true, maintainAspectRatio: false, scales: { y: { beginAtZero: true, grid: { color: '#333' }, ticks: { color: '#999' } }, x: { grid: { display: false }, ticks: { color: '#ccc' } } }, plugins: { legend: { labels: { color: '#ccc' } } } } });
     }
 
     function abrirModal(id=null){
