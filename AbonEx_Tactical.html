@@ -26,14 +26,23 @@
             font-family: 'Roboto', sans-serif; 
             background: var(--bg-body) radial-gradient(#2c2f33 1px, transparent 1px) 0 0/20px 20px; 
             color: var(--text-main); 
-            padding: 0; 
+            padding: 30px; /* Adicionado espaço ao redor (padding externo) */
             padding-bottom: 0; 
+            min-height: 100vh;
         }
 
         .container { 
-            width: 100%; max-width: 100%; margin: 0; 
-            background: var(--bg-panel); border: none; border-radius: 0; 
-            box-shadow: none; min-height: 100vh; display: flex; flex-direction: column; 
+            width: 100%; 
+            max-width: 1200px; /* Limitando a largura do sistema */
+            margin: 0 auto; /* Centralizando horizontalmente */
+            background: var(--bg-panel); 
+            border: 1px solid var(--border); /* Borda sutil */
+            border-radius: 8px; /* Cantos arredondados */
+            box-shadow: 0 10px 40px rgba(0,0,0,0.6); /* Sombra para profundidade */
+            min-height: calc(100vh - 60px); /* Altura ajustada ao padding */
+            display: flex; 
+            flex-direction: column; 
+            overflow: hidden;
         }
 
         /* HEADER */
@@ -98,11 +107,28 @@
         .form-control { width: 100%; padding: 10px; border: 1px solid #444; border-radius: 2px; font-size: 14px; background: #121416; color: white; }
         .form-control:focus { outline: none; border-color: var(--tech-accent); }
         
-        .bot-gestor-box { background: #16181b; border: 1px solid var(--primary); border-left: 5px solid var(--tech-accent); padding: 20px; margin-bottom: 30px; display: flex; gap: 20px; align-items: center; box-shadow: 0 0 15px rgba(0,0,0,0.3); }
-        .bot-avatar { width: 50px; height: 50px; background: var(--primary); color: white; border-radius: 2px; display: flex; justify-content: center; align-items: center; font-size: 24px; flex-shrink: 0; box-shadow: 0 0 10px rgba(139, 195, 74, 0.5); }
-        .bot-message-area { font-family: 'Courier New', monospace; font-size: 14px; color: #ccc; flex: 1; }
-        .bot-highlight { color: var(--tech-accent); font-weight: bold; }
-        .bot-alert { color: var(--status-pendente); font-weight: bold; }
+        /* BOT GESTOR INTERFACE (ATUALIZADA) */
+        .bot-gestor-box { 
+            background: #16181b; border: 1px solid var(--primary); border-left: 5px solid var(--tech-accent); 
+            padding: 15px; margin-bottom: 30px; display: flex; gap: 15px; align-items: flex-start; 
+            box-shadow: 0 0 15px rgba(0,0,0,0.3); position: relative; overflow: hidden;
+        }
+        .bot-avatar { 
+            width: 50px; height: 50px; background: var(--primary); color: white; 
+            border-radius: 2px; display: flex; justify-content: center; align-items: center; 
+            font-size: 24px; flex-shrink: 0; box-shadow: 0 0 10px rgba(139, 195, 74, 0.5); 
+        }
+        .bot-content-area { flex: 1; display: flex; flex-direction: column; gap: 10px; }
+        .bot-header-row { display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid #333; padding-bottom: 5px; margin-bottom: 5px; }
+        .bot-title { color: var(--tech-accent); font-family:'Rajdhani'; font-weight:bold; font-size: 16px; text-transform: uppercase; }
+        .bot-stats-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(120px, 1fr)); gap: 10px; }
+        .bot-stat-item { background: #121416; border: 1px solid #333; padding: 8px; border-radius: 4px; text-align: center; }
+        .bot-stat-label { font-size: 10px; color: #888; text-transform: uppercase; display: block; margin-bottom: 3px; }
+        .bot-stat-val { font-family: 'Rajdhani'; font-weight: bold; font-size: 18px; color: white; }
+        .bot-stat-sub { font-size: 10px; color: #666; margin-top: 2px; display: block; }
+        .bot-live-indicator { width: 8px; height: 8px; background: #e74c3c; border-radius: 50%; display: inline-block; margin-right: 5px; animation: pulse 1.5s infinite; }
+        @keyframes pulse { 0% { opacity: 1; } 50% { opacity: 0.4; } 100% { opacity: 1; } }
+
         .notepad-area { width: 100%; height: 300px; background: #121416; border: 1px solid #444; color: var(--tech-accent); padding: 15px; font-family: 'Courier New', monospace; resize: none; }
 
         .charts-wrapper { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 30px; margin-top: 20px; }
@@ -189,6 +215,11 @@
         .signatures-row { display: flex; justify-content: space-between; margin-top: 80px; gap: 20px; }
         .signature-block { width: 48%; border-top: 1px solid black; text-align: center; padding-top: 5px; font-size: 11pt; color: black; margin-bottom: 5px; }
         .visto-footer-box { border: 1px solid black; padding: 10px; width: 60%; margin: 30px auto 0 auto; text-align: center; font-size: 11pt; line-height: 1.3; color: black;}
+
+        @media (max-width: 768px) {
+            body { padding: 0; }
+            .container { max-width: 100%; border-radius: 0; border: none; min-height: 100vh; }
+        }
 
         @media print {
             @page { size: A4 portrait; margin: 0mm; }
@@ -351,11 +382,16 @@
         <div id="painel" class="content active">
             <div class="bot-gestor-box">
                 <div class="bot-avatar"><i class="fas fa-user-secret"></i></div>
-                <div style="flex:1;">
-                    <h3 style="color:var(--tech-accent); font-family:'Rajdhani'; display:flex; justify-content:space-between; margin-bottom:5px;">
-                        CAPITÃO BARRETINHO <span style="font-size:10px; opacity:0.7; background:#000; padding:2px 5px; border-radius:3px;">ANALISTA TÁTICO</span>
-                    </h3>
-                    <div id="bot-msg" class="bot-message-area">Analisando base de dados...</div>
+                <div class="bot-content-area">
+                    <div class="bot-header-row">
+                        <span class="bot-title">CAPITÃO BARRETINHO</span>
+                        <div style="display:flex; align-items:center;">
+                            <span class="bot-live-indicator"></span>
+                            <span style="font-size:10px; opacity:0.7; font-weight:bold; letter-spacing:1px;">MONITORAMENTO EM TEMPO REAL (MÊS ATUAL)</span>
+                        </div>
+                    </div>
+                    <div id="bot-dashboard" class="bot-stats-grid">
+                        </div>
                 </div>
             </div>
 
@@ -458,7 +494,7 @@
                                 <th onclick="setSort('data')">Data <i class="fas fa-sort"></i></th>
                                 <th onclick="setSort('cidade')">Cidade <i class="fas fa-sort"></i></th>
                                 <th>Turno</th>
-                                <th>Horas</th>
+                                <th style="text-align:center;">Horas</th>
                                 <th>Tipo</th>
                                 <th onclick="setSort('valor')">Valor <i class="fas fa-sort"></i></th>
                             </tr>
@@ -731,7 +767,7 @@
         carregarLocal(); 
         sincronizar(false); 
         setInterval(atualizarHora,1000); atualizarHora();
-        setInterval(botRotinaGestor, 8000); 
+        setInterval(botRotinaGestor, 5000); 
         setupGlobalPaste();
         // Renderizar tabelas de referência
         renderRefTables();
@@ -795,20 +831,52 @@
     function atualizarHora(){ const h=new Date(); const s=h.toLocaleDateString('pt-BR',{weekday:'long',year:'numeric',month:'long',day:'numeric'}); document.getElementById('live-datetime').innerText=s.charAt(0).toUpperCase()+s.slice(1)+", "+h.toLocaleTimeString('pt-BR'); }
 
     function botRotinaGestor() {
-        if(!dbExtras || dbExtras.length === 0) return;
-        const fMes = document.getElementById('filtro-mes').value;
-        const fAno = document.getElementById('filtro-ano').value;
-        let mesRef = fMes || String(new Date().getMonth()+1).padStart(2,'0');
-        let anoRef = (!fAno || fAno === 'all') ? String(new Date().getFullYear()) : fAno;
+        if(!dbExtras) return;
         
-        let horasMes = dbExtras.filter(d => d.data.split('-')[1] === mesRef && d.data.split('-')[0] === anoRef).reduce((a,b)=>a+parseFloat(b.horas||0),0);
-        const pendente = dbExtras.filter(x=>x.status!=='PAGO').reduce((a,b)=>a+b.valor,0);
+        // Calcular para o Mês Atual Real (independente de filtro da tabela)
+        const hoje = new Date();
+        const mesAtualStr = String(hoje.getMonth()+1).padStart(2,'0');
+        const anoAtualStr = String(hoje.getFullYear());
         
-        let msgs = [`<span class="bot-highlight">STATUS FINANCEIRO:</span> Você tem <span class="bot-alert">${toBRL(pendente)}</span> pendentes.`, `<strong>BIZU TÁTICO:</strong> Mantenha o padrão.`, `<strong>SISTEMA:</strong> Modo Blindado V2.0`];
-        if(horasMes >= 60) msgs.unshift(`<span style="color:#e53e3e;">🚨 ALERTA:</span> ${horasMes}h atingidas!`);
-        const msgBox = document.getElementById('bot-msg');
-        if(msgBox) msgBox.innerHTML = msgs[lastBotMsgIndex % msgs.length];
-        lastBotMsgIndex++;
+        let dadosMes = dbExtras.filter(d => d.data.split('-')[1] === mesAtualStr && d.data.split('-')[0] === anoAtualStr);
+        
+        let heTotal = 0, vdTotal = 0;
+        let pendenteTotal = 0;
+
+        dadosMes.forEach(d => {
+            let h = parseFloat(d.horas || 0);
+            if(d.tipo === 'H.E') heTotal += h;
+            if(d.tipo === 'V.D') vdTotal += h;
+        });
+
+        // Pendente é geral ou mês? Geral faz mais sentido financeiro.
+        pendenteTotal = dbExtras.filter(x => x.status !== 'PAGO').reduce((a,b) => a + b.valor, 0);
+
+        let heRestante = 60 - heTotal; if(heRestante < 0) heRestante = 0;
+        let vdRestante = 60 - vdTotal; if(vdRestante < 0) vdRestante = 0;
+
+        const getColor = (val) => val < 10 ? '#e74c3c' : (val < 20 ? '#f39c12' : '#2ecc71');
+
+        const html = `
+            <div class="bot-stat-item">
+                <span class="bot-stat-label">H.E (60h)</span>
+                <span class="bot-stat-val" style="color:${getColor(heRestante)}">${heTotal}h</span>
+                <span class="bot-stat-sub">Resta: ${heRestante}h</span>
+            </div>
+            <div class="bot-stat-item">
+                <span class="bot-stat-label">V.D (60h)</span>
+                <span class="bot-stat-val" style="color:${getColor(vdRestante)}">${vdTotal}h</span>
+                <span class="bot-stat-sub">Resta: ${vdRestante}h</span>
+            </div>
+            <div class="bot-stat-item" style="border-color:${pendenteTotal > 0 ? '#e74c3c' : '#333'}">
+                <span class="bot-stat-label">A RECEBER</span>
+                <span class="bot-stat-val" style="color:${pendenteTotal > 0 ? '#e74c3c' : '#8bc34a'}">${toBRL(pendenteTotal)}</span>
+                <span class="bot-stat-sub">Financeiro Geral</span>
+            </div>
+        `;
+        
+        const dash = document.getElementById('bot-dashboard');
+        if(dash) dash.innerHTML = html;
     }
 
     function carregarLocal(){
@@ -859,12 +927,34 @@
 
     function updateAnalysis(fullData) {
         if(!fullData) return;
-        const fMes = document.getElementById('an-filtro-mes').value; const fAno = document.getElementById('an-filtro-ano').value;
-        let currentYear = String(new Date().getFullYear()); let filteredData = fullData;
-        if (fAno && fAno !== 'all') filteredData = filteredData.filter(d => d.data.split('-')[0] === fAno);
-        else if (!fAno && fMes === "") filteredData = filteredData.filter(d => d.data.split('-')[0] === currentYear);
-        if (fMes && fMes !== 'all') filteredData = filteredData.filter(d => d.data.split('-')[1] === fMes);
-        else if (fMes === "" && (!fAno || fAno !== 'all')) { const mesAtual = String(new Date().getMonth()+1).padStart(2,'0'); filteredData = filteredData.filter(d => d.data.split('-')[1] === mesAtual); }
+        const fMes = document.getElementById('an-filtro-mes').value; 
+        const fAno = document.getElementById('an-filtro-ano').value;
+        let currentYear = String(new Date().getFullYear());
+        let currentMonth = String(new Date().getMonth()+1).padStart(2,'0');
+        let filteredData = fullData;
+
+        // Lógica de Filtro Corrigida para a Aba Análise
+        let targetAno = fAno;
+        let targetMes = fMes;
+
+        // Se ano não selecionado ou 'all', e mês é atual, assumir ano atual
+        if ((!targetAno || targetAno === 'all') && targetMes === "") {
+            targetAno = currentYear;
+        }
+
+        // Se mês é vazio, é o mês atual
+        if (targetMes === "") {
+            targetMes = currentMonth;
+        }
+
+        // Aplicar filtros
+        if (targetAno && targetAno !== 'all') {
+            filteredData = filteredData.filter(d => d.data.split('-')[0] === targetAno);
+        }
+
+        if (targetMes && targetMes !== 'all') {
+            filteredData = filteredData.filter(d => d.data.split('-')[1] === targetMes);
+        }
 
         if(analysisSort === 'data') filteredData.sort((a,b) => new Date(b.data) - new Date(a.data));
         if(analysisSort === 'valor') filteredData.sort((a,b) => b.valor - a.valor);
@@ -918,10 +1008,14 @@
         if(donutChart) donutChart.destroy();
         donutChart = new Chart(ctxDonut, { type: 'doughnut', data: { labels: Object.keys(naturezas), datasets: [{ data: Object.values(naturezas), backgroundColor: ['#8bc34a', '#03a9f4', '#ffc107', '#e91e63', '#9c27b0'], borderColor: '#16181b', borderWidth: 2 }] }, options: { responsive: true, maintainAspectRatio: false, cutout: '70%', plugins: { legend: { position: 'bottom', labels: { color: '#ccc', font: {family: 'Roboto', size:10} } } } } });
 
-        let yearData = fullData; let chartAno = fAno && fAno !== 'all' ? fAno : currentYear;
-        yearData = fullData.filter(d => d.data.split('-')[0] === chartAno);
+        // Gráfico Comparativo usa TODOS os dados do ano selecionado (ou ano atual)
+        // para mostrar a evolução completa, independente se estamos vendo só o mês atual nos detalhes
+        let chartAno = targetAno !== 'all' ? targetAno : currentYear;
+        let yearData = fullData.filter(d => d.data.split('-')[0] === chartAno);
+        
         let extraHours = new Array(12).fill(0); let abonoHours = new Array(12).fill(0);
         yearData.forEach(d => { let mIndex = parseInt(d.data.split('-')[1]) - 1; let h = parseFloat(d.horas || 0); if(d.natureza === 'ABONO') abonoHours[mIndex] += h; else extraHours[mIndex] += h; });
+        
         const ctxComp = document.getElementById('comparisonChart').getContext('2d');
         if(comparisonChart) comparisonChart.destroy();
         comparisonChart = new Chart(ctxComp, { type: 'bar', data: { labels: ['Jan','Fev','Mar','Abr','Mai','Jun','Jul','Ago','Set','Out','Nov','Dez'], datasets: [ { label: 'Extras (h)', data: extraHours, backgroundColor: '#8bc34a', borderRadius: 4 }, { label: 'Abonos (h)', data: abonoHours, backgroundColor: '#e53e3e', borderRadius: 4 } ] }, options: { responsive: true, maintainAspectRatio: false, scales: { y: { beginAtZero: true, grid: { color: '#333' }, ticks: { color: '#999' } }, x: { grid: { display: false }, ticks: { color: '#ccc' } } }, plugins: { legend: { labels: { color: '#ccc' } } } } });
