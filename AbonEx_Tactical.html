@@ -18,6 +18,7 @@
             --primary: #556B2F; --primary-dark: #3b4d21;
             --tech-accent: #8bc34a; --text-main: #e0e0e0; --border: #383f45;
             --status-pago: #15803d; --status-pendente: #b91c1c;
+            --calc-bg: #2b3035; --calc-header: #1f6fb2;
         }
         * { margin: 0; padding: 0; box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
         
@@ -127,22 +128,45 @@
         .turn-day { background: #f39c12; color: #000; }
         .turn-night { background: #2c3e50; color: #fff; border: 1px solid #555; }
 
-        /* CALCULADORA */
-        .tactical-tool-panel { position: absolute; top: 80px; width: 320px; background: #1e2124; border: 2px solid var(--tech-accent); z-index: 100; display: none; box-shadow: 0 10px 40px rgba(0,0,0,0.9); padding: 20px; border-radius: 8px; }
-        .tool-header { display: flex; justify-content: space-between; margin-bottom: 15px; border-bottom: 1px solid #444; padding-bottom: 10px; color: var(--tech-accent); font-family: 'Rajdhani'; font-size: 18px; text-transform: uppercase; font-weight: bold; letter-spacing: 1px; }
-        .calc-display { width: 100%; height: 70px; background: #08090a; color: var(--tech-accent); font-family: 'Courier New', monospace; text-align: right; padding: 15px; margin-bottom: 15px; border: 1px solid #333; border-radius: 4px; font-size: 32px; font-weight: bold; text-shadow: 0 0 8px rgba(139, 195, 74, 0.4); }
-        .calc-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; }
-        .calc-btn { background: #2b3035; color: white; padding: 15px 0; border: none; border-radius: 6px; cursor: pointer; font-weight: bold; font-size: 18px; font-family: 'Rajdhani'; box-shadow: 0 4px 0 #181a1d; transition: all 0.1s; }
-        .calc-btn:active { transform: translateY(4px); box-shadow: none; }
-        .calc-btn:hover { background: #383f45; color: var(--tech-accent); }
-        .calc-btn.op { background: #1e3a29; color: var(--tech-accent); border: 1px solid rgba(139,195,74,0.2); }
-        .calc-btn.clear { background: #5a1a1a; color: #ff9999; }
-        .calc-btn.equal { background: var(--tech-accent); color: black; box-shadow: 0 4px 0 #558b2f; }
+        /* CALCULADORA NOVA */
+        .calc-wrapper { background: #16181b; border: 1px solid #333; border-radius: 8px; overflow: hidden; }
+        .calc-tabs-header { display: flex; border-bottom: 1px solid #333; background: #0f1012; }
+        .c-tab { flex: 1; padding: 15px; text-align: center; cursor: pointer; color: #888; font-family: 'Rajdhani'; font-weight: bold; text-transform: uppercase; border-bottom: 3px solid transparent; transition: 0.3s; background: transparent; }
+        .c-tab:hover { background: #1e2124; }
+        .c-tab.active { color: white; border-bottom-color: var(--calc-header); background: #222; }
+        
+        .calc-body { padding: 25px; }
+        .calc-alert { background: rgba(255, 193, 7, 0.1); border-left: 4px solid #ffc107; color: #ffca28; padding: 15px; border-radius: 4px; font-size: 13px; margin-bottom: 20px; line-height: 1.4; }
 
-        .he-result-box { background: #16181b; padding: 20px; margin-top: 20px; border-left: 4px solid var(--tech-accent); display: none; }
-        .he-row-result { display: flex; justify-content: space-between; padding: 8px 0; border-bottom: 1px solid #333; }
-        .he-total-liq { background: rgba(139, 195, 74, 0.1); padding: 15px; border: 1px solid var(--tech-accent); color: var(--tech-accent); font-size: 20px; font-weight: bold; text-align: center; margin-top: 15px; }
-        .negative { color: #ff6b6b; }
+        .calc-card-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 15px; margin-bottom: 20px; }
+        .calc-card { background: #1e2124; border: 1px solid #333; border-radius: 6px; padding: 15px; position: relative; transition: 0.3s; }
+        .calc-card:hover { border-color: var(--calc-header); box-shadow: 0 4px 10px rgba(0,0,0,0.3); }
+        .calc-card-label { font-size: 11px; color: #888; text-transform: uppercase; font-weight: bold; margin-bottom: 5px; display: block; }
+        .calc-input-styled { width: 100%; background: #121416; border: 1px solid #444; color: white; padding: 8px; font-size: 16px; border-radius: 4px; font-weight: bold; }
+        .calc-input-styled:focus { border-color: var(--calc-header); outline: none; }
+        
+        .calc-btn-action { width: 100%; background: var(--calc-header); color: white; border: none; padding: 15px; font-size: 16px; font-weight: bold; text-transform: uppercase; border-radius: 4px; cursor: pointer; transition: 0.2s; font-family: 'Rajdhani'; margin-top: 10px; }
+        .calc-btn-action:hover { filter: brightness(1.1); box-shadow: 0 0 15px rgba(31, 111, 178, 0.4); }
+
+        .he-result-box { background: #121416; margin-top: 25px; border-radius: 6px; border: 1px solid #333; display: none; overflow: hidden; }
+        .he-res-header { background: #1f2226; padding: 10px 20px; font-size: 14px; font-weight: bold; color: var(--tech-accent); border-bottom: 1px solid #333; display: flex; justify-content: space-between; align-items: center; }
+        .he-res-body { padding: 20px; }
+        .he-row { display: flex; justify-content: space-between; margin-bottom: 8px; font-size: 13px; color: #ccc; border-bottom: 1px solid #222; padding-bottom: 5px; }
+        .he-row.total { font-size: 16px; color: white; border-top: 1px solid #444; padding-top: 10px; margin-top: 10px; border-bottom: none; font-weight: bold; }
+        .he-val { font-family: 'Courier New', monospace; font-weight: bold; }
+        .he-val.plus { color: var(--tech-accent); }
+        .he-val.minus { color: #e74c3c; }
+
+        /* TABELA REFERENCIA ESTILO IMAGEM */
+        .ref-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 20px; }
+        .ref-card { background: white; border-radius: 8px; overflow: hidden; box-shadow: 0 2px 5px rgba(0,0,0,0.2); }
+        .ref-header { background: #1f6fb2; color: white; padding: 12px; text-align: center; font-weight: bold; text-transform: uppercase; font-size: 14px; letter-spacing: 0.5px; }
+        .ref-table-styled { width: 100%; border-collapse: collapse; font-family: 'Roboto', sans-serif; }
+        .ref-table-styled th { background: #f0f2f5; color: #555; font-size: 10px; text-transform: uppercase; padding: 8px 10px; text-align: center; border-bottom: 1px solid #ddd; }
+        .ref-table-styled td { padding: 8px 10px; color: #333; font-size: 12px; text-align: center; border-bottom: 1px solid #eee; }
+        .ref-table-styled tr:nth-child(even) { background: #f9f9f9; }
+        .ref-table-styled tr:last-child td { border-bottom: none; }
+        .ref-row-highlight { font-weight: bold; color: #000; background: #fffde7; }
 
         /* DOCS */
         .doc-viewer-container { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: #525659; z-index: 5000; overflow-y: auto; }
@@ -176,6 +200,19 @@
             .doc-toolbar { display: none !important; }
             .visto-box-float, .visto-footer-box { border: 1px solid black !important; }
         }
+        
+        /* FERRAMENTAS CALCULADORA */
+        .tactical-tool-panel { position: absolute; top: 80px; width: 320px; background: #1e2124; border: 2px solid var(--tech-accent); z-index: 100; display: none; box-shadow: 0 10px 40px rgba(0,0,0,0.9); padding: 20px; border-radius: 8px; }
+        .tool-header { display: flex; justify-content: space-between; margin-bottom: 15px; border-bottom: 1px solid #444; padding-bottom: 10px; color: var(--tech-accent); font-family: 'Rajdhani'; font-size: 18px; text-transform: uppercase; font-weight: bold; letter-spacing: 1px; }
+        .calc-display { width: 100%; height: 70px; background: #08090a; color: var(--tech-accent); font-family: 'Courier New', monospace; text-align: right; padding: 15px; margin-bottom: 15px; border: 1px solid #333; border-radius: 4px; font-size: 32px; font-weight: bold; text-shadow: 0 0 8px rgba(139, 195, 74, 0.4); }
+        .calc-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; }
+        .calc-btn { background: #2b3035; color: white; padding: 15px 0; border: none; border-radius: 6px; cursor: pointer; font-weight: bold; font-size: 18px; font-family: 'Rajdhani'; box-shadow: 0 4px 0 #181a1d; transition: all 0.1s; }
+        .calc-btn:active { transform: translateY(4px); box-shadow: none; }
+        .calc-btn:hover { background: #383f45; color: var(--tech-accent); }
+        .calc-btn.op { background: #1e3a29; color: var(--tech-accent); border: 1px solid rgba(139,195,74,0.2); }
+        .calc-btn.clear { background: #5a1a1a; color: #ff9999; }
+        .calc-btn.equal { background: var(--tech-accent); color: black; box-shadow: 0 4px 0 #558b2f; }
+
     </style>
 </head>
 <body>
@@ -283,7 +320,7 @@
             <div class="header-left-block">
                 <div class="title-line">
                     <i class="fas fa-crosshairs main-icon"></i>
-                    <span class="logo-title">GestorPro - AbonEx <span style="font-size:14px; color:#666">V11.3 TACTICAL</span></span>
+                    <span class="logo-title">GestorPro - AbonEx <span style="font-size:14px; color:#666">V11.7 REALITY</span></span>
                 </div>
                 <div class="user-id-line">
                     <i class="fas fa-skull peto-skull"></i> SD PM D. BARRETO - Mat: 92.137.431
@@ -435,35 +472,120 @@
         </div>
 
         <div id="calc-he-tab" class="content">
-            <h2 class="section-title" style="color:var(--tech-accent); border-bottom:1px solid #444; padding-bottom:10px; margin-bottom:20px;">CALCULADORA DE HORAS EXTRAS (PMBA)</h2>
-            <div style="background:#2b3035; padding:20px; border-radius:4px; margin-bottom:20px; border-left:4px solid #ffc107; color:#ffc107; font-size:14px;">
-                <strong>⚠️ ATENÇÃO:</strong> Este cálculo considera apenas o Imposto de Renda de 27,5% sobre as Horas Extras.
-            </div>
-            <div class="form-group">
-                <label class="form-label">Posto/Graduação:</label>
-                <select id="he-posto" class="form-control">
-                    <option value="">Selecione seu posto</option>
-                    <option value="CEL PM">CEL PM</option><option value="TC PM">TC PM</option><option value="MAJ PM">MAJ PM</option><option value="CAP PM">CAP PM</option><option value="TEN PM">TEN PM</option><option value="ASP PM">ASP PM</option><option value="AL OF PM">AL OF PM</option><option value="ST PM">ST PM</option><option value="SGT PM">SGT PM</option><option value="CB PM">CB PM</option><option value="SD PM">SD PM</option><option value="AL SD PM">AL SD PM</option><option value="FUNC CIVIL">FUNC CIVIL</option>
-                </select>
-            </div>
-            <div style="display:grid; grid-template-columns: 1fr 1fr; gap:20px; margin-bottom:20px;">
-                <div class="form-group"><label class="form-label">H.E. Diurnas:</label><input type="number" id="he-normal" class="form-control" min="0" value="0" step="0.5"></div>
-                <div class="form-group"><label class="form-label">H.E. Noturnas (22h-05h):</label><input type="number" id="he-noturna" class="form-control" min="0" value="0" step="0.5"></div>
-                <div class="form-group"><label class="form-label">V.D. Diurno (Qtd):</label><input type="number" id="vd-normal" class="form-control" min="0" value="0"></div>
-                <div class="form-group"><label class="form-label">V.D. Noturno (Qtd):</label><input type="number" id="vd-noturno" class="form-control" min="0" value="0"></div>
-            </div>
-            <button class="btn-primary" style="width:100%; padding:15px; font-size:16px;" onclick="calcularHorasOficial()">CALCULAR PREVISÃO</button>
-            <div id="he-resultado" class="he-result-box">
-                <h3 style="color:var(--tech-accent); margin-bottom:15px; text-align:center;">DETALHAMENTO</h3>
-                <h4 style="color:#e0e0e0; margin:15px 0 5px 0;">📈 Proventos</h4>
-                <div class="he-row-result"><span>H.E. Diurnas:</span><span id="res-he-normal">R$ 0,00</span></div>
-                <div class="he-row-result"><span>H.E. Noturnas:</span><span id="res-he-noturna">R$ 0,00</span></div>
-                <div class="he-row-result"><span>V.D. Diurno:</span><span id="res-vd-normal">R$ 0,00</span></div>
-                <div class="he-row-result"><span>V.D. Noturno:</span><span id="res-vd-noturno">R$ 0,00</span></div>
-                <h4 style="color:#e53e3e; margin:15px 0 5px 0;">📉 Descontos</h4>
-                <div class="he-row-result"><span>IRRF sobre H.E. (27,5%):</span><span id="res-irrf" class="negative">R$ 0,00</span></div>
-                <div class="he-row-result" style="margin-top:10px; font-weight:bold; border-top:1px solid #555;"><span>TOTAL BRUTO:</span><span id="res-bruto">R$ 0,00</span></div>
-                <div class="he-total-liq">VALOR LÍQUIDO ESTIMADO: <span id="res-liquido">R$ 0,00</span></div>
+            <h2 class="section-title" style="color:var(--tech-accent); border-bottom:1px solid #444; padding-bottom:10px; margin-bottom:20px;">CALCULADORA & TABELAS</h2>
+            
+            <div class="calc-wrapper">
+                <div class="calc-tabs-header">
+                    <button id="tab-calc-c1" class="c-tab active" onclick="switchCalcTab('c-calc')"><i class="fas fa-calculator"></i> Calculadora</button>
+                    <button id="tab-calc-c2" class="c-tab" onclick="switchCalcTab('c-table')"><i class="fas fa-table"></i> Tabelas de Valores</button>
+                    <button id="tab-calc-c3" class="c-tab" onclick="switchCalcTab('c-info')"><i class="fas fa-info-circle"></i> Informações</button>
+                </div>
+
+                <div id="c-calc" class="calc-body">
+                    <div class="calc-alert">
+                        <strong>⚠️ SISTEMA HÍBRIDO:</strong><br>
+                        • Selecione <strong>"SD PM (MEU CASO)"</strong> para sua realidade atual (GAP 3).<br>
+                        • Selecione <strong>"SD PM (GAP 5 PADRÃO)"</strong> para a tabela oficial.<br>
+                        • Imposto de Renda (27,5%) apenas sobre H.E.
+                    </div>
+
+                    <div class="form-group" style="margin-bottom:20px;">
+                        <label class="calc-card-label">SELECIONE SEU POSTO/GRADUAÇÃO</label>
+                        <select id="he-posto" class="calc-input-styled">
+                            <option value="">-- SELECIONE --</option>
+                            <option value="SD PM" selected>SD PM (MEU CASO - GAP III)</option>
+                            <option value="SD PM GAP5" style="color:#f39c12; font-weight:bold;">SD PM (GAP V PADRÃO)</option>
+                            <option value="CEL PM">CEL PM</option><option value="TC PM">TC PM</option><option value="MAJ PM">MAJ PM</option><option value="CAP PM">CAP PM</option><option value="TEN PM">TEN PM</option><option value="ASP PM">ASP PM</option><option value="AL OF PM">AL OF PM</option><option value="ST PM">ST PM</option><option value="SGT PM">SGT PM</option><option value="CB PM">CB PM</option><option value="AL SD PM">AL SD PM</option><option value="FUNC CIVIL">FUNC CIVIL</option>
+                        </select>
+                    </div>
+
+                    <div class="calc-card-grid">
+                        <div class="calc-card">
+                            <label class="calc-card-label"><i class="fas fa-sun"></i> H.E. DIURNAS</label>
+                            <input type="number" id="he-normal" class="calc-input-styled" min="0" value="0" step="0.5">
+                        </div>
+                        <div class="calc-card">
+                            <label class="calc-card-label"><i class="fas fa-moon"></i> H.E. NOTURNAS</label>
+                            <input type="number" id="he-noturna" class="calc-input-styled" min="0" value="0" step="0.5">
+                        </div>
+                        <div class="calc-card">
+                            <label class="calc-card-label"><i class="fas fa-sun"></i> V.D. DIURNO (QTD)</label>
+                            <input type="number" id="vd-normal" class="calc-input-styled" min="0" value="0">
+                        </div>
+                        <div class="calc-card">
+                            <label class="calc-card-label"><i class="fas fa-moon"></i> V.D. NOTURNO (QTD)</label>
+                            <input type="number" id="vd-noturno" class="calc-input-styled" min="0" value="0">
+                        </div>
+                    </div>
+
+                    <button class="calc-btn-action" onclick="calcularHorasOficial()">CALCULAR PREVISÃO</button>
+
+                    <div id="he-resultado" class="he-result-box">
+                        <div class="he-res-header">
+                            <span><i class="fas fa-file-invoice-dollar"></i> EXTRATO DETALHADO</span>
+                        </div>
+                        <div class="he-res-body">
+                            <div class="he-row"><span>H.E. Diurnas (Bruto)</span><span id="res-he-normal" class="he-val plus">R$ 0,00</span></div>
+                            <div class="he-row"><span>H.E. Noturnas (Bruto)</span><span id="res-he-noturna" class="he-val plus">R$ 0,00</span></div>
+                            <div class="he-row"><span>V.D. Diurno (Isento)</span><span id="res-vd-normal" class="he-val plus">R$ 0,00</span></div>
+                            <div class="he-row"><span>V.D. Noturno (Isento)</span><span id="res-vd-noturno" class="he-val plus">R$ 0,00</span></div>
+                            <div style="border-bottom:1px dashed #333; margin:10px 0;"></div>
+                            <div class="he-row"><span>(-) IRRF s/ Hora Extra (27,5%)</span><span id="res-irrf" class="he-val minus">R$ 0,00</span></div>
+                            <div class="he-row total"><span>LÍQUIDO ESTIMADO</span><span id="res-liquido" class="he-val" style="color:#2ecc71; font-size:20px;">R$ 0,00</span></div>
+                        </div>
+                    </div>
+                </div>
+
+                <div id="c-table" class="calc-body" style="display:none; background:#eee; min-height:400px;">
+                    <div style="margin-bottom:20px;">
+                        <h4 style="color:#333; font-family:'Rajdhani'; font-weight:bold; margin-bottom:5px;">TABELAS DE REFERÊNCIA</h4>
+                        <div style="background:#fff; border-left:4px solid #1f6fb2; padding:10px; margin-bottom:15px; color:#555; font-size:12px; line-height:1.4;">
+                            <strong>COMPARATIVO SD PM:</strong><br>
+                            1. <strong>Meu Caso:</strong> Baseado em GAP III (Div. 150) -> R$ 27,16<br>
+                            2. <strong>GAP 5 Padrão:</strong> Baseado em Tabela Oficial (Div. 200) -> R$ 34,14
+                        </div>
+                    </div>
+                    
+                    <div class="ref-grid">
+                        <div class="ref-card">
+                            <div class="ref-header">HORAS EXTRAS (HE)</div>
+                            <table class="ref-table-styled">
+                                <thead>
+                                    <tr>
+                                        <th style="text-align:left;">POST/GRAD</th>
+                                        <th>VL-HE</th>
+                                        <th>VL-AN</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="tbody-ref-he"></tbody>
+                            </table>
+                        </div>
+
+                        <div class="ref-card">
+                            <div class="ref-header">VALOR DIÁRIO (VD - FIXO)</div>
+                            <table class="ref-table-styled">
+                                <thead>
+                                    <tr>
+                                        <th style="text-align:left;">POST/GRAD</th>
+                                        <th>VL-VD</th>
+                                        <th>VL-AN</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="tbody-ref-vd"></tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+
+                <div id="c-info" class="calc-body" style="display:none;">
+                    <h3 style="color:var(--tech-accent); font-family:'Rajdhani'">Sobre os Cálculos</h3>
+                    <p style="margin-bottom:10px; font-size:13px; color:#ccc;">Dados configurados conforme Tabela Oficial e Realidade do Usuário.</p>
+                    <ul style="margin-left:20px; font-size:13px; color:#ccc; line-height:1.6;">
+                        <li><strong>Hora Extra (HE):</strong> Tributada (IRRF 27,5%).</li>
+                        <li><strong>Valor Diário (VD):</strong> Valores fixos indenizatórios. <strong>ISENTOS</strong> de Imposto.</li>
+                        <li><strong>SD PM GAP5 Padrão:</strong> Segue tabela oficial (HE: 34,14 / AN: 17,07).</li>
+                    </ul>
+                </div>
             </div>
         </div>
 
@@ -562,14 +684,36 @@
     
     const cityColorMap = {"Heliópolis": "#e74c3c", "Cícero Dantas": "#8e44ad", "Nova Soure": "#3498db", "Ribeira do Pombal": "#f39c12", "Banzaê": "#16a085", "Cipó": "#27ae60", "Fátima": "#d35400", "Adustina": "#c0392b", "Paripiranga": "#2980b9", "Ribeira do Amparo": "#8bc34a"};
     const defaultCityColor = "#95a5a6";
-    const tabelaValoresPM = {'CEL PM': { he: [113.29, 56.54], vd: [67.94, 81.48] },'TC PM': { he: [103.10, 51.55], vd: [66.13, 79.73] },'MAJ PM': { he: [94.85, 47.43], vd: [65.57, 78.66] },'CAP PM': { he: [78.18, 39.09], vd: [65.40, 78.40] },'TEN PM': { he: [65.77, 32.89], vd: [64.90, 77.69] },'ASP PM': { he: [42.02, 21.01], vd: [45.16, 54.18] },'AL OF PM': { he: [0, 0], vd: [36.19, 43.40] },'ST PM': { he: [41.31, 20.65], vd: [33.83, 40.61] },'SGT PM': { he: [38.47, 19.24], vd: [28.03, 33.83] },'CB PM': { he: [35.39, 17.70], vd: [26.72, 32.29] },'SD PM': { he: [33.35, 16.68], vd: [26.72, 32.29] },'AL SD PM': { he: [0, 0], vd: [26.72, 32.29] },'FUNC CIVIL': { he: [0, 0], vd: [26.72, 32.29] }};
+
+    // =========================================================
+    // MODO HÍBRIDO: GAP III (ATUAL) + GAP V (PADRÃO)
+    // =========================================================
+    const tabelaValoresPM = {
+        'CEL PM': { he: [127.84, 63.92], vd: [67.94, 81.48] },
+        'TC PM':  { he: [116.60, 58.30], vd: [66.13, 79.33] },
+        'MAJ PM': { he: [106.85, 53.42], vd: [65.57, 78.66] },
+        'CAP PM': { he: [92.46, 46.23],  vd: [65.40, 78.40] },
+        'TEN PM': { he: [72.03, 36.01],  vd: [64.90, 77.86] },
+        'ASP PM': { he: [46.42, 23.21],  vd: [45.16, 54.18] },
+        'AL OF PM': { he: [36.23, 18.11], vd: [36.19, 43.40] },
+        'ST PM':  { he: [45.40, 22.70],  vd: [33.83, 40.61] },
+        'SGT PM': { he: [41.92, 20.96],  vd: [29.36, 35.46] },
+        'CB PM':  { he: [38.73, 19.36],  vd: [28.03, 33.83] },
+        'SD PM':  { he: [27.16, 13.56],  vd: [26.72, 32.29] }, // SUA REALIDADE ATUAL (GAP III)
+        'SD PM GAP5': { he: [34.14, 17.07],  vd: [26.72, 32.29] }, // TABELA OFICIAL (GAP V PADRÃO)
+        'AL SD PM': { he: [26.72, 13.36], vd: [26.72, 32.29] },
+        'FUNC CIVIL': { he: [0, 0],      vd: [26.72, 32.29] }
+    };
 
     window.onload=function(){
         carregarLocal(); 
-        sincronizar(false); // Carrega dados ao iniciar
+        sincronizar(false); 
         setInterval(atualizarHora,1000); atualizarHora();
         setInterval(botRotinaGestor, 8000); 
         setupGlobalPaste();
+        // Renderizar tabelas de referência
+        renderRefTables();
+        
         document.getElementById('m-pdf-escala').addEventListener('change', function(e){
             if (this.files && this.files[0]) {
                 const reader = new FileReader();
@@ -591,31 +735,24 @@
         }
 
         try {
-            // 1. BAIXAR O BANCO INTEIRO (Para não apagar o Gestor Pro)
             const res = await fetch(API_URL);
             const bancoCompleto = await res.json();
             
             if(isSaving) {
-                // MODO SALVAR: A verdade está na tela (dbExtras)
-                // Injetamos nossos dados no banco completo baixado
                 bancoCompleto.abonos_extras = dbExtras;
-
-                // Enviamos o banco completo de volta
                 await fetch(API_URL, {
                     method: 'POST',
                     mode: 'no-cors',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify(bancoCompleto)
                 });
-                
                 statusDiv.innerHTML = '<i class="fas fa-check-double"></i> SALVO';
                 statusDiv.style.color = '#8bc34a';
 
             } else {
-                // MODO CARREGAR: A verdade está na nuvem
                 if(bancoCompleto && bancoCompleto.abonos_extras) {
                     dbExtras = bancoCompleto.abonos_extras;
-                    salvarLocal(false); // Salva no cache sem acionar upload
+                    salvarLocal(false); 
                     renderTable();
                 }
                 statusDiv.innerHTML = '<i class="fas fa-wifi"></i> CONECTADO';
@@ -626,7 +763,6 @@
             console.error("Erro Sync:", erro);
             statusDiv.innerHTML = '<i class="fas fa-exclamation-triangle"></i> ERRO REDE';
             statusDiv.style.color = '#e53e3e';
-            // Fallback: se falhar ao salvar, tenta de novo em 5s
             if(isSaving) setTimeout(() => sincronizar(true), 5000);
         }
     }
@@ -798,12 +934,9 @@
     
     function excluir(id){ 
         if(confirm("EXCLUIR REGISTRO? A ação será sincronizada imediatamente.")){ 
-            // 1. Remove LOCALMENTE
             dbExtras = dbExtras.filter(x => x.id != id); 
-            // 2. Salva Localmente
             salvarLocal(false);
             renderTable(); 
-            // 3. Força Upload Imediato (A verdade local sobrescreve a nuvem)
             sincronizar(true);
         } 
     }
@@ -812,13 +945,87 @@
     function baixarPDF(base64, nome) { const link = document.createElement('a'); link.href = base64; link.download = `ESCALA_${nome}.pdf`; link.click(); }
     function limparBase(){ if(confirm("RESETAR TUDO? ISSO APAGARÁ A NUVEM!")){ dbExtras = []; salvarLocal(true); location.reload(); } }
     
+    // ==========================================
+    // FUNÇÕES CALCULADORA
+    // ==========================================
     function calcularHorasOficial() {
         const posto = document.getElementById('he-posto').value;
-        const heNormal = parseFloat(document.getElementById('he-normal').value) || 0; const heNoturna = parseFloat(document.getElementById('he-noturna').value) || 0; const vdNormal = parseFloat(document.getElementById('vd-normal').value) || 0; const vdNoturno = parseFloat(document.getElementById('vd-noturno').value) || 0;
+        const heNormal = parseFloat(document.getElementById('he-normal').value) || 0; 
+        const heNoturna = parseFloat(document.getElementById('he-noturna').value) || 0; 
+        const vdNormal = parseFloat(document.getElementById('vd-normal').value) || 0; 
+        const vdNoturno = parseFloat(document.getElementById('vd-noturno').value) || 0;
+        
         if (!posto) { alert('Selecione seu posto/graduação.'); return; }
-        const valores = tabelaValoresPM[posto]; const totalHENormal = heNormal * valores.he[0]; const totalHENoturna = heNoturna * (valores.he[0] + valores.he[1]); const totalVDNormal = vdNormal * valores.vd[0]; const totalVDNoturno = vdNoturno * valores.vd[1]; const totalHE = totalHENormal + totalHENoturna; const totalVD = totalVDNormal + totalVDNoturno; const totalBruto = totalHE + totalVD; const irrfHE = totalHE * 0.275; const totalLiquido = totalBruto - irrfHE;
-        document.getElementById('res-he-normal').innerText = toBRL(totalHENormal); document.getElementById('res-he-noturna').innerText = toBRL(totalHENoturna); document.getElementById('res-vd-normal').innerText = toBRL(totalVDNormal); document.getElementById('res-vd-noturno').innerText = toBRL(totalVDNoturno); document.getElementById('res-irrf').innerText = "- " + toBRL(irrfHE); document.getElementById('res-bruto').innerText = toBRL(totalBruto); document.getElementById('res-liquido').innerText = toBRL(totalLiquido); document.getElementById('he-resultado').style.display = 'block';
+        
+        const valores = tabelaValoresPM[posto]; 
+        
+        // Cálculos H.E (Sofre Incidência de IRRF)
+        const totalHENormal = heNormal * valores.he[0]; 
+        const totalHENoturna = heNoturna * (valores.he[0] + valores.he[1]); 
+        const totalHEBruto = totalHENormal + totalHENoturna;
+        const irrfHE = totalHEBruto * 0.275; // 27.5% de retenção na fonte apenas sobre a HE
+        
+        // Cálculos V.D (Isento)
+        const totalVDNormal = vdNormal * valores.vd[0]; 
+        const totalVDNoturno = vdNoturno * valores.vd[1]; 
+        const totalVDBruto = totalVDNormal + totalVDNoturno;
+
+        // Total Líquido
+        const totalLiquido = (totalHEBruto - irrfHE) + totalVDBruto;
+
+        // Renderizar
+        document.getElementById('res-he-normal').innerText = toBRL(totalHENormal); 
+        document.getElementById('res-he-noturna').innerText = toBRL(totalHENoturna); 
+        document.getElementById('res-vd-normal').innerText = toBRL(totalVDNormal); 
+        document.getElementById('res-vd-noturno').innerText = toBRL(totalVDNoturno); 
+        
+        document.getElementById('res-irrf').innerText = "- " + toBRL(irrfHE); 
+        document.getElementById('res-liquido').innerText = toBRL(totalLiquido); 
+        
+        document.getElementById('he-resultado').style.display = 'block';
     }
+
+    function switchCalcTab(tabId) {
+        // Esconder todos
+        document.getElementById('c-calc').style.display = 'none';
+        document.getElementById('c-table').style.display = 'none';
+        document.getElementById('c-info').style.display = 'none';
+        
+        // Resetar botões
+        document.querySelectorAll('.calc-tabs-header .c-tab').forEach(b => b.classList.remove('active'));
+
+        // Mostrar o selecionado
+        document.getElementById(tabId).style.display = 'block';
+        
+        // Ativar botão correto
+        if(tabId === 'c-calc') document.getElementById('tab-calc-c1').classList.add('active');
+        if(tabId === 'c-table') document.getElementById('tab-calc-c2').classList.add('active');
+        if(tabId === 'c-info') document.getElementById('tab-calc-c3').classList.add('active');
+    }
+
+    function renderRefTables() {
+        const tbodyHE = document.getElementById('tbody-ref-he');
+        const tbodyVD = document.getElementById('tbody-ref-vd');
+        tbodyHE.innerHTML = ''; tbodyVD.innerHTML = '';
+
+        for (const [posto, vals] of Object.entries(tabelaValoresPM)) {
+            // Tabela HE
+            let rowHE = document.createElement('tr');
+            if(posto.includes('SD PM')) rowHE.classList.add('ref-row-highlight');
+            rowHE.innerHTML = `<td style="text-align:left;">${posto}</td><td>${vals.he[0].toFixed(2).replace('.',',')}</td><td>${vals.he[1].toFixed(2).replace('.',',')}</td>`;
+            tbodyHE.appendChild(rowHE);
+
+            // Tabela VD - Apenas exibe VD uma vez para SD PM para não poluir
+            if(posto !== 'SD PM GAP5') {
+                let rowVD = document.createElement('tr');
+                if(posto === 'SD PM') rowVD.classList.add('ref-row-highlight');
+                rowVD.innerHTML = `<td style="text-align:left;">${posto}</td><td>${vals.vd[0].toFixed(2).replace('.',',')}</td><td>${vals.vd[1].toFixed(2).replace('.',',')}</td>`;
+                tbodyVD.appendChild(rowVD);
+            }
+        }
+    }
+
+    // Calculadora Simples (Ferramentas)
     function calcInput(v) { document.getElementById('calc-display').value += v; }
     function calcClear() { document.getElementById('calc-display').value = ''; }
     function calcResult() { try { document.getElementById('calc-display').value = eval(document.getElementById('calc-display').value); } catch(e) { document.getElementById('calc-display').value = 'ERRO'; } }
@@ -832,25 +1039,6 @@
     function toBRL(v){ return v.toLocaleString('pt-BR',{style:'currency',currency:'BRL'}); }
     function formatarMoeda(e){ let v=e.value.replace(/\D/g,''); v=(v/100).toFixed(2)+''; v=v.replace('.',',').replace(/(\d)(?=(\d{3})+(?!\d))/g,'$1.'); e.value='R$ '+v; }
     function lerMoeda(v){ return parseFloat(v.replace('R$','').trim().replaceAll('.','').replace(',','.'))||0; }
-    
-    // --- FUNÇÃO DE BACKUP INTEGRADO AO INDEX ---
-    window.gerarBackupCompleto = function() {
-        const backupData = {
-            abonos_extras: dbExtras,
-            cidades: cidades,
-            sistema: "ABONEX_TACTICAL"
-        };
-        const jsonDados = JSON.stringify(backupData, null, 2);
-        const blob = new Blob([jsonDados], { type: 'application/json' });
-        const url = URL.createObjectURL(blob);
-        const a = document.createElement('a');
-        a.href = url;
-        a.download = `BACKUP_ABONEX_${new Date().toISOString().slice(0,10)}.json`;
-        document.body.appendChild(a);
-        a.click();
-        document.body.removeChild(a);
-        URL.revokeObjectURL(url);
-    };
     </script>
 </body>
 </html>
