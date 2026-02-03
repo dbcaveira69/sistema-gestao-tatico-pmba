@@ -320,7 +320,7 @@
             <div class="header-left-block">
                 <div class="title-line">
                     <i class="fas fa-crosshairs main-icon"></i>
-                    <span class="logo-title">GestorPro - AbonEx <span style="font-size:14px; color:#666">V11.7 REALITY</span></span>
+                    <span class="logo-title">GestorPro - AbonEx <span style="font-size:14px; color:#666">V11.8 REALITY</span></span>
                 </div>
                 <div class="user-id-line">
                     <i class="fas fa-skull peto-skull"></i> SD PM D. BARRETO - Mat: 92.137.431
@@ -483,17 +483,18 @@
 
                 <div id="c-calc" class="calc-body">
                     <div class="calc-alert">
-                        <strong>⚠️ SISTEMA HÍBRIDO:</strong><br>
-                        • Selecione <strong>"SD PM (MEU CASO)"</strong> para sua realidade atual (GAP 3).<br>
-                        • Selecione <strong>"SD PM (GAP 5 PADRÃO)"</strong> para a tabela oficial.<br>
-                        • Imposto de Renda (27,5%) apenas sobre H.E.
+                        <strong>⚠️ SISTEMA HÍBRIDO (V11.8):</strong><br>
+                        • Selecione <strong>"SD PM (GAP III)"</strong> para sua realidade atual.<br>
+                        • Selecione <strong>"SD PM (GAP IV)"</strong> para simulação de promoção.<br>
+                        • Imposto de Renda (27,5%) incide APENAS sobre Hora Extra.
                     </div>
 
                     <div class="form-group" style="margin-bottom:20px;">
                         <label class="calc-card-label">SELECIONE SEU POSTO/GRADUAÇÃO</label>
                         <select id="he-posto" class="calc-input-styled">
                             <option value="">-- SELECIONE --</option>
-                            <option value="SD PM" selected>SD PM (MEU CASO - GAP III)</option>
+                            <option value="SD PM" selected>SD PM (GAP III)</option>
+                            <option value="SD PM GAP4">SD PM (GAP IV)</option>
                             <option value="SD PM GAP5" style="color:#f39c12; font-weight:bold;">SD PM (GAP V PADRÃO)</option>
                             <option value="CEL PM">CEL PM</option><option value="TC PM">TC PM</option><option value="MAJ PM">MAJ PM</option><option value="CAP PM">CAP PM</option><option value="TEN PM">TEN PM</option><option value="ASP PM">ASP PM</option><option value="AL OF PM">AL OF PM</option><option value="ST PM">ST PM</option><option value="SGT PM">SGT PM</option><option value="CB PM">CB PM</option><option value="AL SD PM">AL SD PM</option><option value="FUNC CIVIL">FUNC CIVIL</option>
                         </select>
@@ -523,6 +524,7 @@
                     <div id="he-resultado" class="he-result-box">
                         <div class="he-res-header">
                             <span><i class="fas fa-file-invoice-dollar"></i> EXTRATO DETALHADO</span>
+                            <span style="font-size:10px; opacity:0.7">BASE SELECIONADA</span>
                         </div>
                         <div class="he-res-body">
                             <div class="he-row"><span>H.E. Diurnas (Bruto)</span><span id="res-he-normal" class="he-val plus">R$ 0,00</span></div>
@@ -540,9 +542,10 @@
                     <div style="margin-bottom:20px;">
                         <h4 style="color:#333; font-family:'Rajdhani'; font-weight:bold; margin-bottom:5px;">TABELAS DE REFERÊNCIA</h4>
                         <div style="background:#fff; border-left:4px solid #1f6fb2; padding:10px; margin-bottom:15px; color:#555; font-size:12px; line-height:1.4;">
-                            <strong>COMPARATIVO SD PM:</strong><br>
-                            1. <strong>Meu Caso:</strong> Baseado em GAP III (Div. 150) -> R$ 27,16<br>
-                            2. <strong>GAP 5 Padrão:</strong> Baseado em Tabela Oficial (Div. 200) -> R$ 34,14
+                            <strong>EVOLUÇÃO SD PM:</strong><br>
+                            1. <strong>GAP III:</strong> R$ 27,16 (Realidade Atual)<br>
+                            2. <strong>GAP IV:</strong> R$ 30,58 (Simulação)<br>
+                            3. <strong>GAP V (Oficial):</strong> R$ 34,14
                         </div>
                     </div>
                     
@@ -686,7 +689,7 @@
     const defaultCityColor = "#95a5a6";
 
     // =========================================================
-    // MODO HÍBRIDO: GAP III (ATUAL) + GAP V (PADRÃO)
+    // MODO HÍBRIDO (V11.8): GAP III, GAP IV e GAP V
     // =========================================================
     const tabelaValoresPM = {
         'CEL PM': { he: [127.84, 63.92], vd: [67.94, 81.48] },
@@ -699,8 +702,9 @@
         'ST PM':  { he: [45.40, 22.70],  vd: [33.83, 40.61] },
         'SGT PM': { he: [41.92, 20.96],  vd: [29.36, 35.46] },
         'CB PM':  { he: [38.73, 19.36],  vd: [28.03, 33.83] },
-        'SD PM':  { he: [27.16, 13.56],  vd: [26.72, 32.29] }, // SUA REALIDADE ATUAL (GAP III)
-        'SD PM GAP5': { he: [34.14, 17.07],  vd: [26.72, 32.29] }, // TABELA OFICIAL (GAP V PADRÃO)
+        'SD PM':  { he: [27.16, 13.56],  vd: [26.72, 32.29] }, // GAP III (ATUAL)
+        'SD PM GAP4': { he: [30.58, 15.25],  vd: [26.72, 32.29] }, // GAP IV (SIMULAÇÃO)
+        'SD PM GAP5': { he: [34.14, 17.07],  vd: [26.72, 32.29] }, // GAP V (OFICIAL)
         'AL SD PM': { he: [26.72, 13.36], vd: [26.72, 32.29] },
         'FUNC CIVIL': { he: [0, 0],      vd: [26.72, 32.29] }
     };
@@ -1016,7 +1020,7 @@
             tbodyHE.appendChild(rowHE);
 
             // Tabela VD - Apenas exibe VD uma vez para SD PM para não poluir
-            if(posto !== 'SD PM GAP5') {
+            if(posto !== 'SD PM GAP5' && posto !== 'SD PM GAP4') {
                 let rowVD = document.createElement('tr');
                 if(posto === 'SD PM') rowVD.classList.add('ref-row-highlight');
                 rowVD.innerHTML = `<td style="text-align:left;">${posto}</td><td>${vals.vd[0].toFixed(2).replace('.',',')}</td><td>${vals.vd[1].toFixed(2).replace('.',',')}</td>`;
@@ -1039,6 +1043,24 @@
     function toBRL(v){ return v.toLocaleString('pt-BR',{style:'currency',currency:'BRL'}); }
     function formatarMoeda(e){ let v=e.value.replace(/\D/g,''); v=(v/100).toFixed(2)+''; v=v.replace('.',',').replace(/(\d)(?=(\d{3})+(?!\d))/g,'$1.'); e.value='R$ '+v; }
     function lerMoeda(v){ return parseFloat(v.replace('R$','').trim().replaceAll('.','').replace(',','.'))||0; }
+    
+    // --- FUNÇÃO DE BACKUP INTEGRADO AO INDEX ---
+    window.gerarBackupCompleto = function() {
+        const backupData = {
+            abonos_extras: dbExtras,
+            cidades: cidades,
+            sistema: "ABONEX_TACTICAL"
+        };
+        const jsonDados = JSON.stringify(backupData, null, 2);
+        const blob = new Blob([jsonDados], { type: "application/json" });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement("a");
+        a.href = url;
+        a.download = `BACKUP_ABONEX_${new Date().toISOString().slice(0,10)}.json`;
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+    };
     </script>
 </body>
 </html>
