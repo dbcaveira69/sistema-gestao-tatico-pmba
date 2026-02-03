@@ -233,6 +233,11 @@
                 <div class="form-group"><label class="form-label">Data</label><input type="date" id="m-data" class="form-control"></div>
             </div>
             
+            <div class="form-group" style="margin-bottom:15px;">
+                <label class="form-label">Operação / Evento</label>
+                <input type="text" id="m-operacao" class="form-control" placeholder="Ex: Op. Amanhecer, Festas Juninas...">
+            </div>
+
             <div class="form-row">
                 <div class="form-group">
                     <label class="form-label">Turno (Regime)</label>
@@ -387,8 +392,9 @@
                         <tr>
                             <th>Data</th>
                             <th>Cidade</th>
+                            <th>Operação</th>
                             <th>Tipo / Natureza</th>
-                            <th>Qtd Horas</th>
+                            <th style="text-align:center;">Qtd Horas</th>
                             <th>Status</th>
                             <th>Valor</th>
                             <th>PDF Escala / Obs</th>
@@ -418,12 +424,24 @@
 
             <div class="progress-wrapper">
                 <div class="progress-label">
-                    <span>LIMITE MENSAL (60H)</span>
-                    <span id="prog-text-label">0%</span>
+                    <span>LIMITE H.E (60H)</span>
+                    <span id="prog-text-label-he">0%</span>
                 </div>
                 <div class="progress-bg">
-                    <div id="prog-bar-fill" class="progress-fill">
-                        <div id="prog-text" class="progress-text">0h / 60h</div>
+                    <div id="prog-bar-fill-he" class="progress-fill">
+                        <div id="prog-text-he" class="progress-text">0h / 60h</div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="progress-wrapper">
+                <div class="progress-label">
+                    <span>LIMITE V.D (60H)</span>
+                    <span id="prog-text-label-vd">0%</span>
+                </div>
+                <div class="progress-bg">
+                    <div id="prog-bar-fill-vd" class="progress-fill">
+                        <div id="prog-text-vd" class="progress-text">0h / 60h</div>
                     </div>
                 </div>
             </div>
@@ -859,16 +877,42 @@
         });
 
         let naturezas = {}; let totalHorasPeriodo = 0;
-        filteredData.forEach(d => { let nat = d.natureza || 'OUTROS'; let h = parseFloat(d.horas || 0); if(!naturezas[nat]) naturezas[nat] = 0; naturezas[nat] += h; totalHorasPeriodo += h; });
+        let totalHE = 0;
+        let totalVD = 0;
+
+        filteredData.forEach(d => { 
+            let nat = d.natureza || 'OUTROS'; 
+            let h = parseFloat(d.horas || 0); 
+            if(!naturezas[nat]) naturezas[nat] = 0; 
+            naturezas[nat] += h; 
+            totalHorasPeriodo += h; 
+
+            if(d.tipo === 'H.E') totalHE += h;
+            if(d.tipo === 'V.D') totalVD += h;
+        });
+        
         document.getElementById('dct-total').innerText = totalHorasPeriodo;
-        let percent = (totalHorasPeriodo / 60) * 100; if(percent > 100) percent = 100;
-        const progFill = document.getElementById('prog-bar-fill');
-        progFill.style.width = percent + '%';
-        document.getElementById('prog-text').innerText = `${totalHorasPeriodo}h / 60h`;
-        document.getElementById('prog-text-label').innerText = percent.toFixed(1) + '%';
-        if(percent < 50) progFill.style.background = 'linear-gradient(90deg, #556B2F, #8bc34a)';
-        else if(percent < 90) progFill.style.background = 'linear-gradient(90deg, #f57f17, #ffc107)';
-        else progFill.style.background = 'linear-gradient(90deg, #c62828, #e53e3e)';
+
+        // Barra HE
+        let percentHE = (totalHE / 60) * 100; if(percentHE > 100) percentHE = 100;
+        const progFillHE = document.getElementById('prog-bar-fill-he');
+        progFillHE.style.width = percentHE + '%';
+        document.getElementById('prog-text-he').innerText = `${totalHE}h / 60h`;
+        document.getElementById('prog-text-label-he').innerText = percentHE.toFixed(1) + '%';
+        if(percentHE < 50) progFillHE.style.background = 'linear-gradient(90deg, #556B2F, #8bc34a)';
+        else if(percentHE < 90) progFillHE.style.background = 'linear-gradient(90deg, #f57f17, #ffc107)';
+        else progFillHE.style.background = 'linear-gradient(90deg, #c62828, #e53e3e)';
+
+        // Barra VD
+        let percentVD = (totalVD / 60) * 100; if(percentVD > 100) percentVD = 100;
+        const progFillVD = document.getElementById('prog-bar-fill-vd');
+        progFillVD.style.width = percentVD + '%';
+        document.getElementById('prog-text-vd').innerText = `${totalVD}h / 60h`;
+        document.getElementById('prog-text-label-vd').innerText = percentVD.toFixed(1) + '%';
+        if(percentVD < 50) progFillVD.style.background = 'linear-gradient(90deg, #556B2F, #8bc34a)';
+        else if(percentVD < 90) progFillVD.style.background = 'linear-gradient(90deg, #f57f17, #ffc107)';
+        else progFillVD.style.background = 'linear-gradient(90deg, #c62828, #e53e3e)';
+
 
         const ctxDonut = document.getElementById('doughnutChart').getContext('2d');
         if(donutChart) donutChart.destroy();
@@ -886,7 +930,7 @@
     function abrirModal(id=null){
         removerImagem(); removerPdf();
         document.getElementById('edit-id').value = '';
-        document.getElementById('m-valor').value = ''; document.getElementById('m-obs').value = ''; document.getElementById('m-horas').value = '8'; document.getElementById('m-periodo').value = 'DIURNO'; document.getElementById('m-tipo').value = 'H.E'; document.getElementById('m-natureza').value = 'VOLUNTÁRIO'; document.getElementById('m-status').value = 'A RECEBER';
+        document.getElementById('m-valor').value = ''; document.getElementById('m-obs').value = ''; document.getElementById('m-horas').value = '8'; document.getElementById('m-periodo').value = 'DIURNO'; document.getElementById('m-tipo').value = 'H.E'; document.getElementById('m-natureza').value = 'VOLUNTÁRIO'; document.getElementById('m-status').value = 'A RECEBER'; document.getElementById('m-operacao').value = '';
         const hoje = new Date(); let anoSug = hoje.getFullYear(); let mesSug = String(hoje.getMonth()+1).padStart(2,'0'); let diaSug = String(hoje.getDate()).padStart(2,'0'); document.getElementById('m-data').value = `${anoSug}-${mesSug}-${diaSug}`;
         document.getElementById('modal').style.display='flex'; 
         if(id){
@@ -894,7 +938,7 @@
             const i = dbExtras.find(x => x.id == id);
             if(i) {
                 document.getElementById('m-cidade').value = i.cidade;
-                document.getElementById('m-data').value = i.data; document.getElementById('m-valor').value = toBRL(i.valor); document.getElementById('m-tipo').value = i.tipo || 'H.E'; document.getElementById('m-natureza').value = i.natureza || 'VOLUNTÁRIO'; document.getElementById('m-horas').value = i.horas; document.getElementById('m-status').value = i.status; document.getElementById('m-obs').value = i.obs; document.getElementById('m-periodo').value = i.periodo || 'DIURNO';
+                document.getElementById('m-data').value = i.data; document.getElementById('m-valor').value = toBRL(i.valor); document.getElementById('m-tipo').value = i.tipo || 'H.E'; document.getElementById('m-natureza').value = i.natureza || 'VOLUNTÁRIO'; document.getElementById('m-horas').value = i.horas; document.getElementById('m-status').value = i.status; document.getElementById('m-obs').value = i.obs; document.getElementById('m-periodo').value = i.periodo || 'DIURNO'; document.getElementById('m-operacao').value = i.operacao || '';
                 if(i.anexo){ tempAnexoBase64=i.anexo; document.getElementById('paste-preview-img').src=i.anexo; document.getElementById('paste-preview-img').style.display='block'; document.getElementById('btn-remove-img').style.display = 'block'; }
                 if(i.pdfEscala) { tempPdfBase64 = i.pdfEscala; document.getElementById('btn-remove-pdf').style.display = 'block'; }
             }
@@ -904,7 +948,7 @@
     
     function salvarRegistro(){
         const id=document.getElementById('edit-id').value;
-        const obj={ id:id?parseInt(id):Date.now(), cidade:document.getElementById('m-cidade').value, data:document.getElementById('m-data').value, valor:lerMoeda(document.getElementById('m-valor').value), tipo:document.getElementById('m-tipo').value, natureza:document.getElementById('m-natureza').value, horas:document.getElementById('m-horas').value, status:document.getElementById('m-status').value, obs:document.getElementById('m-obs').value, periodo:document.getElementById('m-periodo').value, anexo:tempAnexoBase64, pdfEscala: tempPdfBase64 };
+        const obj={ id:id?parseInt(id):Date.now(), cidade:document.getElementById('m-cidade').value, operacao:document.getElementById('m-operacao').value, data:document.getElementById('m-data').value, valor:lerMoeda(document.getElementById('m-valor').value), tipo:document.getElementById('m-tipo').value, natureza:document.getElementById('m-natureza').value, horas:document.getElementById('m-horas').value, status:document.getElementById('m-status').value, obs:document.getElementById('m-obs').value, periodo:document.getElementById('m-periodo').value, anexo:tempAnexoBase64, pdfEscala: tempPdfBase64 };
         if(id) dbExtras[dbExtras.findIndex(x=>x.id==id)]=obj; else dbExtras.push(obj);
         salvarLocal(true); fecharModal(); renderTable(); 
     }
@@ -930,7 +974,7 @@
             let ax = d.anexo ? `<i class="fas fa-image" style="color:var(--tech-accent);cursor:pointer;margin-right:5px;" onclick="verImagem('${d.anexo}')" title="Ver Print"></i>` : '';
             let pdfIcon = d.pdfEscala ? `<i class="fas fa-file-pdf" style="color:#e74c3c;cursor:pointer;margin-right:5px;" onclick="baixarPDF('${d.pdfEscala}', '${d.data}_${d.cidade}')" title="Baixar Escala"></i>` : '';
             let btnCheck = d.status === 'A RECEBER' ? `<button class="btn-check" style="padding:5px 10px; margin-right:5px;" onclick="marcarComoPago(${d.id})"><i class="fas fa-check"></i></button>` : '';
-            tb.innerHTML+=`<tr><td>${d.data.split('-').reverse().join('/')}</td><td><span class="city-badge" style="background:${getCityColor(d.cidade)}">${d.cidade}</span></td><td>${d.tipo} <small>(${d.natureza||'-'})</small> <br><small style="color:#666">${d.periodo||''}</small></td><td style="text-align:center;">${d.horas}h</td><td><span class="badge ${d.status==='PAGO'?'badge-pago':'badge-pendente'}">${d.status}</span></td><td style="color:var(--tech-accent);font-weight:bold">${toBRL(d.valor)}</td><td>${pdfIcon} ${ax} <small>${d.obs.substring(0,15)}</small></td><td>${btnCheck}<button class="btn-primary" style="padding:5px 10px" onclick="abrirModal(${d.id})"><i class="fas fa-pen"></i></button> <button class="btn-del" style="padding:5px 10px" onclick="excluir(${d.id})"><i class="fas fa-trash"></i></button></td></tr>`;
+            tb.innerHTML+=`<tr><td>${d.data.split('-').reverse().join('/')}</td><td><span class="city-badge" style="background:${getCityColor(d.cidade)}">${d.cidade}</span></td><td>${d.operacao || '-'}</td><td>${d.tipo} <small>(${d.natureza||'-'})</small> <br><small style="color:#666">${d.periodo||''}</small></td><td style="text-align:center;">${d.horas}h</td><td><span class="badge ${d.status==='PAGO'?'badge-pago':'badge-pendente'}">${d.status}</span></td><td style="color:var(--tech-accent);font-weight:bold">${toBRL(d.valor)}</td><td>${pdfIcon} ${ax} <small>${d.obs.substring(0,15)}</small></td><td>${btnCheck}<button class="btn-primary" style="padding:5px 10px" onclick="abrirModal(${d.id})"><i class="fas fa-pen"></i></button> <button class="btn-del" style="padding:5px 10px" onclick="excluir(${d.id})"><i class="fas fa-trash"></i></button></td></tr>`;
         });
         document.getElementById('dash-total').innerText=toBRL(t); document.getElementById('dash-pago').innerText=toBRL(pg); document.getElementById('dash-pendente').innerText=toBRL(pd); document.getElementById('dash-horas').innerText=th + 'h'; 
         updateAnalysis(dbExtras); botRotinaGestor();
@@ -1064,5 +1108,3 @@
     </script>
 </body>
 </html>
-
-
